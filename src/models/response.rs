@@ -17,8 +17,8 @@ pub struct Pager {
 pub struct ResponseWrapperList<'a, T> {
   pub code: i32,
   pub message: &'a str,
-  pub data: Vec<T>,
-  pub pager: Pager,
+  pub data: Option<Vec<T>>,
+  pub pager: Option<Pager>,
 }
 
 #[derive(Serialize)]
@@ -28,11 +28,14 @@ pub struct ResponseWrapper<'a, T> {
   pub data: Option<T>,
 }
 
+const SUCCESS_CODE: i32 = 200;
+const SERVER_ERROR_CODE: i32 = 503;
+const CLIENT_ERROR_CODE: i32 = 400;
 pub struct Response;
 impl Response {
   pub fn ok<'a, T>(data: T, message: &'a str) -> ResponseWrapper<'a, T> {
     ResponseWrapper {
-      code: 200,
+      code: SUCCESS_CODE,
       message,
       data: Some(data),
     }
@@ -40,7 +43,7 @@ impl Response {
   
   pub fn server_error<'a, T>(message: &'a str) -> ResponseWrapper<'a, T> {
     ResponseWrapper {
-      code: 503,
+      code: SERVER_ERROR_CODE,
       message,
       data: None,
     }
@@ -48,13 +51,13 @@ impl Response {
   
   pub fn client_error<'a, T>(message: &'a str) -> ResponseWrapper<'a, T> {
     ResponseWrapper {
-      code: 400,
+      code: CLIENT_ERROR_CODE,
       message,
       data: None,
     }
   }
   
-  pub fn ok_list<'a, T>(pager: paginated::ResponseList<T>) -> ResponseWrapperList<'a, T> {
+  pub fn ok_pager<'a, T>(pager: paginated::ResponseList<T>) -> ResponseWrapperList<'a, T> {
     let pages = Pager {
       page: pager.page,
       per_page: pager.per_page,
@@ -62,10 +65,35 @@ impl Response {
       last_page: pager.last_page,
     };
     ResponseWrapperList {
-      code: 200,
+      code: SUCCESS_CODE,
       message: "",
-      data: pager.data,
-      pager: pages,
+      data: Some(pager.data),
+      pager: Some(pages),
+    }
+  }
+  pub fn ok_list<'a, T>(data: Vec<T>) -> ResponseWrapperList<'a, T> {
+    ResponseWrapperList {
+      code: SUCCESS_CODE,
+      message: "",
+      data: Some(data),
+      pager: None,
+    }
+  }
+  pub fn server_error_list<'a, T>(message: &'a str) -> ResponseWrapperList<'a, T> {
+    ResponseWrapperList {
+      code: SERVER_ERROR_CODE,
+      message,
+      data: None,
+      pager: None,
+    }
+  }
+  
+  pub fn client_error_list<'a, T>(message: &'a str) -> ResponseWrapperList<'a, T> {
+    ResponseWrapperList {
+      code: CLIENT_ERROR_CODE,
+      message,
+      data: None,
+      pager: None,
     }
   }
 }

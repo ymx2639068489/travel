@@ -24,7 +24,7 @@ async fn get_all(
     service::role::get_role_by_page(&mut conn, pager.page, pager.per_page)
   }).await?;
 
-  Ok(Response::ok_list(res))
+  Ok(Response::ok_pager(res))
 }
 
 #[post("/insert")]
