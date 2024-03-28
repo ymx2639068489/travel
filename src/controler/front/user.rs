@@ -1,9 +1,9 @@
 
 use actix_web::{get, post, put, web, Responder, Result as Res};
 use crate::{
-  UserData,
+  JwtUserData,
   DbPool,
-  ResponseWrapper,
+  Response,
   service,
   models::user::*,
   utils::auth::front_auth,
@@ -27,17 +27,17 @@ async fn login(user: web::Json<LoginUserDTO>, pool: web::Data<DbPool>) -> Res<im
       if password.eq(&q_user.password) {
         // 生成token
         let token = front_auth::create_jwt(&q_user.id);
-        ResponseWrapper::ok(token, "登录成功")
+        Response::ok(token, "登录成功")
       } else {
-        ResponseWrapper::client_error("密码错误")
+        Response::client_error("密码错误")
       }
     }
-    Err(_) => ResponseWrapper::client_error("该手机号码未注册")
+    Err(_) => Response::client_error("该手机号码未注册")
   })
 }
 
 #[get("/info")]
-async fn get_info(pool: web::Data<DbPool>, user: UserData) -> Res<impl Responder> {
+async fn get_info(pool: web::Data<DbPool>, user: JwtUserData) -> Res<impl Responder> {
   let userinfo = web::block(move || {
     let mut conn = pool.get()
      .expect("couldn't get db connection");
@@ -46,9 +46,9 @@ async fn get_info(pool: web::Data<DbPool>, user: UserData) -> Res<impl Responder
   .await?;
   
   Ok(if let Ok(userinfo) = userinfo {
-    ResponseWrapper::ok(userinfo.get_info(), "获取成功")
+    Response::ok(userinfo.get_info(), "获取成功")
   } else {
-    ResponseWrapper::server_error("获取失败")
+    Response::server_error("获取失败")
   })
 }
 
@@ -64,7 +64,7 @@ async fn register(user: web::Json<RegisterUserDTO>, pool: web::Data<DbPool>) -> 
     .await?;
 
   if let Ok(_) = q_user {
-    return Ok(ResponseWrapper::client_error("手机号已被注册"));
+    return Ok(Response::client_error("手机号已被注册"));
   }
   let mut conn = pool.get()
     .expect("couldn't get db connection");
@@ -73,15 +73,19 @@ async fn register(user: web::Json<RegisterUserDTO>, pool: web::Data<DbPool>) -> 
 
   Ok(
     match flag {
-      Ok(n) => ResponseWrapper::ok(n, "注册成功"),
-      Err(_) => ResponseWrapper::server_error("Error inserting user")
+      Ok(n) => Response::ok(n, "注册成功"),
+      Err(_) => Response::server_error("Error inserting user")
     }
   )
 }
 
 
 #[put("/update_profile")]
-async fn update_profile(mut user: web::Json<UpdateUserDTO>, pool: web::Data<DbPool>, ud: UserData) -> Res<impl Responder> {
+async fn update_profile(
+  mut user: web::Json<UpdateUserDTO>,
+  pool: web::Data<DbPool>,
+  ud: JwtUserData
+) -> Res<impl Responder> {
   let mut conn = pool.get()
     .expect("couldn't get db connection");
   // 防止非法
@@ -90,8 +94,8 @@ async fn update_profile(mut user: web::Json<UpdateUserDTO>, pool: web::Data<DbPo
     .await?;
   Ok(
     match flag {
-      Ok(n) => ResponseWrapper::ok(n, "更新成功"),
-      Err(_) => ResponseWrapper::server_error("Error updating user")
+      Ok(n) => Response::ok(n, "更新成功"),
+      Err(_) => Response::server_error("Error updating user")
     }
   )
 }

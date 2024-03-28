@@ -4,20 +4,18 @@ use diesel::{r2d2, MysqlConnection};
 mod controler;
 pub mod utils;
 pub mod config;
+pub mod service;
+pub use utils::JwtUserData;
 pub mod schema;
 pub mod models;
-pub mod service;
-pub use utils::UserData;
-pub use models::ResponseWrapper;
-
-
+pub use models::{
+  ResponseList,
+  Paginate,
+  Response,
+  QueryPager,
+};
 type DbPool = r2d2::Pool<r2d2::ConnectionManager<MysqlConnection>>;
-// type DbManager = r2d2::ConnectionManager<MysqlConnection>;
 
-// pub struct AppState {
-//   db: DbPool,
-//   env: config::Config,
-// }
 
 // 初始化环境，并把连接池和env config返回
 // fn init_env() -> (config::Config, DbPool) {
