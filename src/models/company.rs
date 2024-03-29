@@ -1,8 +1,8 @@
 
-use diesel::{AsChangeset, Insertable, Queryable};
+use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 
-#[derive(Queryable, Debug, Serialize, Deserialize, Insertable, AsChangeset)]
+#[derive(Queryable, Debug, Serialize, Deserialize, Insertable, AsChangeset, Selectable)]
 #[diesel(table_name = crate::schema::company)]
 pub struct CompanyDTO {
   pub id: String,

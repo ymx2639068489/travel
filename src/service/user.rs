@@ -1,9 +1,11 @@
 
 use diesel::{prelude::*, QueryResult};
-use crate::models::user::*;
-
+use crate::{
+  schema::custom::dsl::*,
+  models::user::*,
+  utils::sql_response::diesel_to_res,
+};
 type Conn = diesel::MysqlConnection;
-use crate::schema::custom::dsl::*;
 /**
  * 通过手机号查询用户
  */
@@ -29,18 +31,18 @@ pub fn query_user_by_id(conn: &mut Conn, user_id: &i32) -> QueryResult<UserDTO> 
 /**
  * 更新用户信息
  */
-pub fn update_profile(conn: &mut Conn, user_id: i32, user: &UpdateUserDTO) -> QueryResult<usize> {
+pub fn update_profile(conn: &mut Conn, user_id: i32, user: &UpdateUserDTO) -> QueryResult<bool> {
   let target = custom.filter(id.eq(user_id));
-  diesel::update(target)
+  diesel_to_res(diesel::update(target)
     .set(user)
-    .execute(conn)
+    .execute(conn))
 }
 /**
  * 新增一个用户
  */
-pub fn insert_user(coon: &mut Conn, user: &RegisterUserDTO) -> QueryResult<usize> {
-  diesel::insert_into(custom)
+pub fn insert_user(coon: &mut Conn, user: &RegisterUserDTO) -> QueryResult<bool> {
+  diesel_to_res(diesel::insert_into(custom)
    .values(user)
-   .execute(coon)
+   .execute(coon))
 }
 

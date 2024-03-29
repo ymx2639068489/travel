@@ -15,10 +15,7 @@ async fn get_all_compnay(pool: web::Data<DbPool>) -> Res<impl Responder> {
   }).await?;
   Ok(match res {
     Ok(list) => Response::ok_list(list),
-    Err(e) => {
-      eprintln!("{:?}", e);
-      Response::server_error_list("error get")
-    }
+    Err(_) => Response::server_error_list("error get"),
   })
 }
 
@@ -30,17 +27,8 @@ async fn add_one(pool: web::Data<DbPool>, company: web::Json<AddCompanyDTO>) -> 
   }).await?;
 
   Ok(match res {
-    Ok(size) => {
-      if size == 0 {
-        Response::server_error("插入失败")
-      } else {
-        Response::ok("", "插入成功")
-      }
-    },
-    Err(e) => {
-      eprintln!("{:?}", e);
-      Response::server_error("error insert")
-    }
+    Ok(_) => Response::ok("", "新增成功"),
+    Err(_) => Response::server_error("插入失败"),
   })
 }
 
@@ -52,20 +40,14 @@ async fn update_one(pool: web::Data<DbPool>, company: web::Json<CompanyDTO>) -> 
     service::company::update_company(&mut conn, &company)
   }).await?;
   Ok(match res {
-    Ok(size) => {
-      if size == 0 {
-        Response::server_error("更新失败")
-      } else {
-        Response::ok("", "更新成功")
-      }
-    },
-    Err(e) => {
-      eprintln!("{:?}", e);
-      Response::server_error("error insert")
-    }
+    Ok(_) => Response::ok("", "更新成功"),
+    Err(_) => Response::server_error("更新失败"),
   })
-
 }
 pub fn init_routes(cfg: &mut web::ServiceConfig) {
-  cfg.service(get_all_compnay);
+  cfg
+    .service(get_all_compnay)
+    .service(add_one)
+    .service(update_one)
+    ;
 }
