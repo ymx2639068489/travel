@@ -1,14 +1,18 @@
 use actix_web::{
   get, post, web, put, Responder, Result as Res
 };
+use add_pool_args::add_pool_args;
+use verify_role::verify_permissions;
 
 use crate::{
-  models::company::*, service, DbPool, Response
+  models::company::*, service, DbPool, Response, JwtAdminData
 };
 
 
 #[get("/get_all")]
-async fn get_all_compnay(pool: web::Data<DbPool>) -> Res<impl Responder> {
+#[add_pool_args]
+#[verify_permissions(company, query)]
+async fn get_all_compnay() -> Res<impl Responder> {
   let mut conn = pool.get().unwrap();
   let res = web::block(move || {
     service::company::query_all_company(&mut conn)
@@ -20,12 +24,13 @@ async fn get_all_compnay(pool: web::Data<DbPool>) -> Res<impl Responder> {
 }
 
 #[post("/insert")]
-async fn add_one(pool: web::Data<DbPool>, company: web::Json<AddCompanyDTO>) -> Res<impl Responder> {
+#[add_pool_args]
+#[verify_permissions(company, insert)]
+async fn add_one(company: web::Json<AddCompanyDTO>) -> Res<impl Responder> {
   let mut conn = pool.get().unwrap();
   let res = web::block(move || {
     service::company::add_company(&mut conn, &company.to_company_dto())
   }).await?;
-
   Ok(match res {
     Ok(_) => Response::ok("", "新增成功"),
     Err(_) => Response::server_error("插入失败"),
@@ -34,7 +39,9 @@ async fn add_one(pool: web::Data<DbPool>, company: web::Json<AddCompanyDTO>) -> 
 
 
 #[put("/update")]
-async fn update_one(pool: web::Data<DbPool>, company: web::Json<CompanyDTO>) -> Res<impl Responder> {
+#[add_pool_args]
+#[verify_permissions(company, update)]
+async fn update_one(company: web::Json<CompanyDTO>) -> Res<impl Responder> {
   let mut conn = pool.get().unwrap();
   let res = web::block(move || {
     service::company::update_company(&mut conn, &company)

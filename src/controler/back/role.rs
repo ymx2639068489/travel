@@ -6,18 +6,16 @@ use actix_web::{
   Responder,
   Result as Res,
 };
-use verify_role::verify_permissions;
 use crate::{
   models::role::*, service, utils::auth::JwtAdminData, DbPool, QueryPager, Response
 };
+use add_pool_args::add_pool_args;
+use verify_role::verify_permissions;
 
 #[get("/get_all")]
+#[add_pool_args]
 #[verify_permissions(role, query)]
-async fn get_all(
-  jwt_admin_data: JwtAdminData,
-  pager: web::Query<QueryPager>,
-  pool: web::Data<DbPool>,
-) -> Res<impl Responder>{
+async fn get_all(pager: web::Query<QueryPager>) -> Res<impl Responder>{
   let mut conn = pool.get().unwrap();
   let res = web::block(
     move || service::role::get_role_by_page(&mut conn, pager.page, pager.per_page)
@@ -27,7 +25,9 @@ async fn get_all(
 }
 
 #[post("/insert")]
-async fn add_one(role: web::Json<AddRoleDTO>, pool: web::Data<DbPool>) -> Res<impl Responder> {
+#[add_pool_args]
+#[verify_permissions(role, insert)]
+async fn add_one(role: web::Json<AddRoleDTO>) -> Res<impl Responder> {
   let mut conn = pool.get().unwrap();
   let res = web::block(
     move || service::role::add_one_role(&mut conn, &role.to_role_dto())
@@ -39,7 +39,9 @@ async fn add_one(role: web::Json<AddRoleDTO>, pool: web::Data<DbPool>) -> Res<im
 }
 
 #[put("/update")]
-async fn update_one(role: web::Json<UpdateRoleDTO>, pool: web::Data<DbPool>) -> Res<impl Responder> {
+#[add_pool_args]
+#[verify_permissions(role, query)]
+async fn update_one(role: web::Json<UpdateRoleDTO>) -> Res<impl Responder> {
   let mut conn = pool.get().unwrap();
   let res = web::block(move || service::role::update_one_role(&mut conn, &role)).await?;
   Ok(match res {

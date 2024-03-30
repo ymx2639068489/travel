@@ -6,6 +6,7 @@ pub mod utils;
 pub mod config;
 pub mod service;
 pub use utils::JwtUserData;
+pub use utils::JwtAdminData;
 pub mod schema;
 pub mod models;
 pub use models::{

@@ -58,7 +58,6 @@ pub struct RegisterUserDTO {
 
 #[derive(Deserialize, Debug, Identifiable, AsChangeset)]
 #[diesel(table_name= crate::schema::custom)]
-#[primary_key(id)]
 pub struct UpdateUserDTO {
   pub id: Option<i32>,
   pub name: Option<String>,

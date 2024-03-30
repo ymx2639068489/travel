@@ -13,7 +13,6 @@ pub struct AdminLogin {
 }
 
 #[derive(Deserialize, Debug, Clone, Serialize, Queryable, Selectable, Associations, PartialEq)]
-#[diesel(primary_key(id))]
 #[diesel(table_name = admin)]
 #[diesel(belongs_to(role::dsl::role, foreign_key = role_id))]
 #[diesel(belongs_to(company::dsl::company, foreign_key = company_id))]

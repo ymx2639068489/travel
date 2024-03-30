@@ -1,0 +1,45 @@
+{
+  // 使用 IntelliSense 了解相关属性。 
+  // 悬停以查看现有属性的描述。
+  // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug executable 'front'",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=front",
+          "--package=front"
+        ],
+        "filter": {
+          "name": "front",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug unit tests in executable 'front'",
+      "cargo": {
+        "args": [
+          "test",
+          "--no-run",
+          "--bin=front",
+          "--package=front"
+        ],
+        "filter": {
+          "name": "front",
+          "kind": "bin"
+        }
+      },
+      "args": [],
+      "cwd": "${workspaceFolder}"
+    }
+  ]
+}

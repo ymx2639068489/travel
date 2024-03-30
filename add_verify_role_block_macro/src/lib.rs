@@ -12,8 +12,20 @@ pub fn verify_permissions(attr: TokenStream, item: TokenStream) -> TokenStream {
   let (table, _) = arg.split_at(
     arg.find(",").unwrap()
   );
+  let input = add_jwt_args(item);
+
+  // println!("add jwt args {:?}", input.to_string());
+  // println!("");
+  // println!("");
+
+  let res = build_code(input, table, rule_value);
+
   
-  build_code(item, table, rule_value)
+  // println!("add verify block {:?}", res.to_string());
+  // println!("");
+  // println!("");
+
+  res
 }
 
 fn build_code(input: TokenStream, table: &str, rule_value: &str) -> TokenStream {
@@ -23,7 +35,6 @@ fn build_code(input: TokenStream, table: &str, rule_value: &str) -> TokenStream 
 
   // 获取函数的名称
   let func_name = &func.sig.ident;
-
   // 构造函数体的代码
   let func_block = &func.block;
   let output = quote! {
@@ -51,4 +62,28 @@ fn build_code(input: TokenStream, table: &str, rule_value: &str) -> TokenStream 
 
   // 将新的函数定义转换回 TokenStream
   quote! { #func }.into()
+}
+
+fn add_jwt_args(input: TokenStream) -> TokenStream {
+  let mut func = input.to_string();
+  // 第一次以大括号分割，第一个大括号一般都是函数体与函数签名分割的地方
+  if let Some((head, body)) = func.split_once("{") {
+    // 第二次以fn 分割，因为函数签名上面可能还有一些其他的宏
+    if let Some((hhead, hbody)) = head.split_once("fn") {
+      let l = hbody.find("(").unwrap();
+      let r = hbody.rfind(")").unwrap();
+
+      let args = &hbody[l+1..r];
+
+      let new_args = if args.len() == 0 {
+        "jwt_admin_data: JwtAdminData".to_owned()
+      } else {
+        args.to_owned() + ", jwt_admin_data: JwtAdminData"
+      };
+      let new_head = "fn ".to_owned() + &hbody[0..l+1] + &new_args + &hbody[r..];
+      func = hhead.to_owned() + &new_head + "{" + body;
+    }
+  }
+  func.parse().unwrap()
+
 }

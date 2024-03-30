@@ -8,9 +8,10 @@ use crate::{
   models::user::*,
   utils::auth::front_auth,
 };
-
+use add_pool_args::add_pool_args;
 #[post("/login")]
-async fn login(user: web::Json<LoginUserDTO>, pool: web::Data<DbPool>) -> Res<impl Responder> {
+#[add_pool_args]
+async fn login(user: web::Json<LoginUserDTO>) -> Res<impl Responder> {
   let password = user.password.clone();
   // 通过手机号查询用户
   let q_user = web::block(move || {
@@ -37,7 +38,8 @@ async fn login(user: web::Json<LoginUserDTO>, pool: web::Data<DbPool>) -> Res<im
 }
 
 #[get("/info")]
-async fn get_info(pool: web::Data<DbPool>, user: JwtUserData) -> Res<impl Responder> {
+#[add_pool_args]
+async fn get_info(user: JwtUserData) -> Res<impl Responder> {
   let userinfo = web::block(move || {
     let mut conn = pool.get()
      .expect("couldn't get db connection");
@@ -53,7 +55,8 @@ async fn get_info(pool: web::Data<DbPool>, user: JwtUserData) -> Res<impl Respon
 }
 
 #[post("/register")]
-async fn register(user: web::Json<RegisterUserDTO>, pool: web::Data<DbPool>) -> Res<impl Responder> {
+#[add_pool_args]
+async fn register(user: web::Json<RegisterUserDTO>) -> Res<impl Responder> {
 
   let mut conn = pool.get()
     .expect("couldn't get db connection");
@@ -81,9 +84,9 @@ async fn register(user: web::Json<RegisterUserDTO>, pool: web::Data<DbPool>) -> 
 
 
 #[put("/update_profile")]
+#[add_pool_args]
 async fn update_profile(
   mut user: web::Json<UpdateUserDTO>,
-  pool: web::Data<DbPool>,
   ud: JwtUserData
 ) -> Res<impl Responder> {
   let mut conn = pool.get()
