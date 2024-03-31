@@ -3,8 +3,10 @@
 use diesel::{prelude::Insertable, Queryable, Identifiable, AsChangeset};
 use serde::{Serialize, Deserialize};
 
+use super::RemoveImportInformation;
+
 // 完整的结构体
-#[derive(Queryable, Debug, Serialize)]
+#[derive(Queryable, Debug, Serialize, Clone)]
 pub struct UserDTO {
   pub id: i32,
   pub name: String,
@@ -38,6 +40,15 @@ impl UserDTO {
     }
   }
 }
+impl RemoveImportInformation for UserDTO {
+  fn remove_import_information(mut self) -> Self {
+    self.password = "".to_string();
+    if let Some(id_number) = self.id_number {
+      self.id_number = Some(crate::utils::hide_id_number(id_number));
+    }
+    self
+  }
+}
 
 
 #[derive(Deserialize, Debug)]
@@ -66,10 +77,3 @@ pub struct UpdateUserDTO {
   pub id_type: Option<String>,
   pub id_number: Option<String>,
 }
-
-impl UpdateUserDTO {
-  pub fn get_tulpe(&self) {
-    
-  }
-}
-

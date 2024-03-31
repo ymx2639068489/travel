@@ -56,7 +56,7 @@ impl AddRoleDTO {
 /**
  * 更新时，id必须传，其他的随意
  */
-#[derive(Identifiable, Deserialize, Debug, AsChangeset)]
+#[derive(Identifiable, Deserialize, Debug, AsChangeset, Clone)]
 #[diesel(table_name= crate::schema::role)]
 pub struct UpdateRoleDTO {
   pub id: String,

@@ -1,60 +1,64 @@
 use actix_web::{
   get, post, web, put, Responder, Result as Res
 };
-use add_pool_args::add_pool_args;
 use verify_role::verify_permissions;
 
 use crate::{
   models::company::*, service, DbPool, Response, JwtAdminData
 };
 
-
 #[get("/get_all")]
-#[add_pool_args]
 #[verify_permissions(company, query)]
-async fn get_all_compnay() -> Res<impl Responder> {
-  let mut conn = pool.get().unwrap();
-  let res = web::block(move || {
-    service::company::query_all_company(&mut conn)
-  }).await?;
+async fn get_all_compnay(pool: web::Data<DbPool>, jwt: JwtAdminData) -> Res<impl Responder> {
+  let res = service::company::get_all_company(&pool).await;
   Ok(match res {
     Ok(list) => Response::ok_list(list),
-    Err(_) => Response::server_error_list("error get"),
+    Err(e) => Response::server_error_list(e),
   })
 }
 
 #[post("/insert")]
-#[add_pool_args]
 #[verify_permissions(company, insert)]
-async fn add_one(company: web::Json<AddCompanyDTO>) -> Res<impl Responder> {
-  let mut conn = pool.get().unwrap();
-  let res = web::block(move || {
-    service::company::add_company(&mut conn, &company.to_company_dto())
-  }).await?;
+async fn add_one(
+  company: web::Json<AddCompanyDTO>,
+  pool: web::Data<DbPool>,
+  jwt: JwtAdminData,
+) -> Res<impl Responder> {
+  let res =service::company::insert_one_company(
+    &pool,
+    company.to_company_dto(),
+  ).await;
   Ok(match res {
     Ok(_) => Response::ok("", "新增成功"),
     Err(_) => Response::server_error("插入失败"),
   })
 }
 
+/**
+ * 好像没有更新的必要
+ */
+// #[put("/update")]
+// #[verify_permissions(company, update)]
+// async fn update_one(
+//   company: web::Json<CompanyDTO>,
+//   pool: web::Data<DbPool>,
+//   jwt: JwtAdminData,
+// ) -> Res<impl Responder> {
+//   let res = service::company::update_company(
+//     &pool,
+//     company.into_inner()
+//   ).await;
+//   Ok(match res {
+//     Ok(_) => Response::ok("", "更新成功"),
+//     Err(_) => Response::server_error("更新失败"),
+//   })
+// }
 
-#[put("/update")]
-#[add_pool_args]
-#[verify_permissions(company, update)]
-async fn update_one(company: web::Json<CompanyDTO>) -> Res<impl Responder> {
-  let mut conn = pool.get().unwrap();
-  let res = web::block(move || {
-    service::company::update_company(&mut conn, &company)
-  }).await?;
-  Ok(match res {
-    Ok(_) => Response::ok("", "更新成功"),
-    Err(_) => Response::server_error("更新失败"),
-  })
-}
+
 pub fn init_routes(cfg: &mut web::ServiceConfig) {
   cfg
     .service(get_all_compnay)
     .service(add_one)
-    .service(update_one)
+    // .service(update_one)
     ;
 }

@@ -9,12 +9,14 @@ pub use utils::JwtUserData;
 pub use utils::JwtAdminData;
 pub mod schema;
 pub mod models;
+pub mod dao;
 pub use models::{
   ResponseList,
   Paginate,
   Response,
   QueryPager,
 };
+
 type DbPool = r2d2::Pool<r2d2::ConnectionManager<MysqlConnection>>;
 
 
@@ -42,7 +44,7 @@ async fn main() -> std::io::Result<()> {
 
   let pool = init_env();
 
-  println!("🚀 Server started successfully");
+  println!("🚀 Server started successfully: http://localhost:8080");
   HttpServer::new(move || {
     App::new()
       .app_data(web::Data::new(pool.clone()))

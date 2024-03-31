@@ -1,22 +1,13 @@
 
-use crate::utils::auth::back_auth;
+use crate::{utils::auth::back_auth, DbPool};
 use actix_web::{dev::Payload, error, Error, FromRequest, HttpRequest};
 
 use std::future::{ready, Ready};
-
+use crate::service;
 
 #[derive(Debug, Clone)]
 pub struct JwtAdminData {
   pub id: String,
-  pub company_id: String,
-  pub admin_value: i32,
-  pub operator_value: i32,
-  pub role_value: i32,
-  pub company_value: i32,
-  pub salesman_value: i32,
-  pub sales_records_value: i32,
-  pub product_value: i32,
-  pub custom_value: i32,
 }
 #[derive(Debug)]
 enum RuleValue {
@@ -27,7 +18,9 @@ enum RuleValue {
   Delete    = 0b010000,
   SetRule   = 0b100000,
 }
-
+/**
+ * 利用二进制与或非进行校验权限
+ */
 fn verity(rule_value: i32, rule: &str) -> bool {
   let y = match rule {
     "query" => RuleValue::Query,
@@ -37,39 +30,45 @@ fn verity(rule_value: i32, rule: &str) -> bool {
     "delete" => RuleValue::Delete,
     "set_rule" => RuleValue::SetRule,
     _ => panic!("Invalid rule"),
-  };
-  let y = y as i32;
+  } as i32;
   (rule_value & y) == y
 }
 
 impl JwtAdminData {
-  pub fn new(claims: super::back_auth::Claims) -> JwtAdminData {
+  pub fn new(id: String) -> JwtAdminData {
     JwtAdminData {
-      id: claims.id.clone(),
-      company_id: claims.company_id.clone(),
-      admin_value: claims.admin_value,
-      operator_value: claims.operator_value,
-      role_value: claims.role_value,
-      company_value: claims.company_value,
-      salesman_value: claims.salesman_value,
-      sales_records_value: claims.sales_records_value,
-      product_value: claims.product_value,
-      custom_value: claims.custom_value,
+      id,
     }
   }
 
-  pub fn validate_role(self: &Self, table: &str, rule_value: &str) -> bool {
+  pub async fn validate_role(
+    self: &Self,
+    pool: &actix_web::web::Data<DbPool>,
+    table: &str,
+    rule_value: &str
+  ) -> bool {
     println!("table is '{}', rule_value is '{}'", table, rule_value);
-    match table {
-      "admin" => verity(self.admin_value, rule_value),
-      "operator" => verity(self.operator_value, rule_value),
-      "role" => verity(self.role_value, rule_value),
-      "company" => verity(self.company_value, rule_value),
-      "salesman" => verity(self.salesman_value, rule_value),
-      "sales_records" => verity(self.sales_records_value, rule_value),
-      "product" => verity(self.product_value, rule_value),
-      "custom" => verity(self.custom_value, rule_value),
-      _ => panic!("Invalid role: {}", table),
+
+    let admin_info = service::admin::get_admin_by_id(
+      pool,
+      self.id.clone()
+    ).await;
+    match admin_info {
+      Ok(admin) => {
+        // println!("{:?}", admin.role);
+        match table {
+          "admin" => verity(admin.role.admin_value, rule_value),
+          "operator" => verity(admin.role.operator_value, rule_value),
+          "role" => verity(admin.role.role_value, rule_value),
+          "company" => verity(admin.role.company_value, rule_value),
+          "salesman" => verity(admin.role.salesman_value, rule_value),
+          "sales_records" => verity(admin.role.sales_records_value, rule_value),
+          "product" => verity(admin.role.product_value, rule_value),
+          "custom" => verity(admin.role.custom_value, rule_value),
+          _ => panic!("Invalid role: {}", table),
+        }
+      },
+      Err(_) => return false, 
     }
   }
 }
@@ -91,8 +90,7 @@ impl FromRequest for JwtAdminData {
         let result = back_auth::validate_token(token);
         match result {
           Ok(data) => {
-            // TODO: 验证用户是否有访问该接口的权限
-            Ok(JwtAdminData::new(data.claims as super::back_auth::Claims))
+            Ok(JwtAdminData::new(data.claims.id.clone()))
           },
           Err(e) => {
             eprintln!("{}", e);

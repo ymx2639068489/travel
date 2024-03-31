@@ -23,9 +23,9 @@ fn build_code(input: TokenStream) -> TokenStream {
       let args = &hbody[l+1..r];
 
       let new_args = if args.len() == 0 {
-        "pool: web::Data<DbPool>".to_owned()
+        "pool: actix_web::web::Data<crate::DbPool>".to_owned()
       } else {
-        args.to_owned() + ", pool: web::Data<DbPool>"
+        args.to_owned() + ", pool: actix_web::web::Data<crate::DbPool>"
       };
       let new_head = "fn ".to_owned() + &hbody[0..l+1] + &new_args + &hbody[r..];
       func = hhead.to_owned() + &new_head + "{" + body;

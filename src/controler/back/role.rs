@@ -7,31 +7,44 @@ use actix_web::{
   Result as Res,
 };
 use crate::{
-  models::role::*, service, utils::auth::JwtAdminData, DbPool, QueryPager, Response
+  models::role::*,
+  service,
+  JwtAdminData,
+  DbPool,
+  QueryPager,
+  Response,
 };
-use add_pool_args::add_pool_args;
 use verify_role::verify_permissions;
 
 #[get("/get_all")]
-#[add_pool_args]
 #[verify_permissions(role, query)]
-async fn get_all(pager: web::Query<QueryPager>) -> Res<impl Responder>{
-  let mut conn = pool.get().unwrap();
-  let res = web::block(
-    move || service::role::get_role_by_page(&mut conn, pager.page, pager.per_page)
-  ).await?;
-
-  Ok(Response::ok_pager(res))
+async fn get_all(
+  pager: web::Query<QueryPager>,
+  pool: web::Data<DbPool>,
+  jwt: JwtAdminData,
+) -> Res<impl Responder>{
+  let res = service::role::get_role_by_page(
+    &pool,
+    pager.page,
+    pager.per_page
+  ).await;
+  Ok(match res {
+    Err(e) => Response::client_error(e),
+    Ok(res) => Response::ok_pager(res)
+  })
 }
 
 #[post("/insert")]
-#[add_pool_args]
 #[verify_permissions(role, insert)]
-async fn add_one(role: web::Json<AddRoleDTO>) -> Res<impl Responder> {
-  let mut conn = pool.get().unwrap();
-  let res = web::block(
-    move || service::role::add_one_role(&mut conn, &role.to_role_dto())
-  ).await?;
+async fn add_one(
+  role: web::Json<AddRoleDTO>,
+  pool: web::Data<DbPool>,
+  jwt: JwtAdminData,
+) -> Res<impl Responder> {
+  let res = service::role::add_one_role(
+    &pool,
+    role.to_role_dto(),
+  ).await;
   Ok(match res {
     Ok(_) => Response::ok("", "添加成功"),
     Err(_) => Response::server_error("添加失败"),
@@ -39,20 +52,18 @@ async fn add_one(role: web::Json<AddRoleDTO>) -> Res<impl Responder> {
 }
 
 #[put("/update")]
-#[add_pool_args]
 #[verify_permissions(role, query)]
-async fn update_one(role: web::Json<UpdateRoleDTO>) -> Res<impl Responder> {
-  let mut conn = pool.get().unwrap();
-  let res = web::block(move || service::role::update_one_role(&mut conn, &role)).await?;
+async fn update_one(
+  role: web::Json<UpdateRoleDTO>,
+  pool: web::Data<DbPool>,
+  jwt: JwtAdminData,
+) -> Res<impl Responder> {
+  let res = service::role::update_one_role(&pool, role.into_inner()).await;
   Ok(match res {
     Ok(_) => Response::ok("", "更新成功"),
     Err(_) => Response::server_error("更新失败"),
   })
 }
-// #[delete("/delete")]
-// async fn delete_one() {
-
-// }
 
 pub fn init_routes(cfg: &mut web::ServiceConfig) {
   cfg

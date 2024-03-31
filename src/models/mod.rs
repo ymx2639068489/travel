@@ -11,3 +11,7 @@ pub use paginated::{
   Paginate,
   QueryPager,
 };
+
+pub trait RemoveImportInformation {
+  fn remove_import_information(self) -> Self;
+}

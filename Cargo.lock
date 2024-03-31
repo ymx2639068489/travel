@@ -182,14 +182,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "add_pool_args"
-version = "0.1.0"
-dependencies = [
- "quote",
- "syn 2.0.53",
-]
-
-[[package]]
 name = "addr2line"
 version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -630,7 +622,6 @@ name = "front"
 version = "0.1.0"
 dependencies = [
  "actix-web",
- "add_pool_args",
  "chrono",
  "diesel",
  "dotenv",

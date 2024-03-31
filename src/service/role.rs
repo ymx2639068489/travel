@@ -1,40 +1,81 @@
-
-use diesel::{prelude::*, QueryResult};
-
-type Conn = diesel::MysqlConnection;
-
+use actix_web::web;
 use crate::{
-  Paginate,
-  ResponseList,
-  schema::role::dsl::*,
-  models::role::*,
-  utils::sql_response::diesel_to_res,
+  dao, models::role::*, DbPool, ResponseList
 };
 
-pub fn get_role_by_page(conn: &mut Conn, page: i64, per_page: i64) -> ResponseList<RoleDTO> {
-  crate::schema::role::table
-    .into_boxed()
-    .page(Some(page))
-    .per_page(Some(per_page))
-    .paginate::<RoleDTO>(conn)
-    .unwrap()
+pub async fn get_role_by_page<'a>(
+  pool: &web::Data<DbPool>,
+  page: i64,
+  per_page: i64
+) -> Result<ResponseList<RoleDTO>, &'a str> {
+  let mut conn = pool.get().unwrap();
+  let res = web::block(
+    move || dao::role::get_role_by_page(&mut conn, page, per_page)
+  ).await;
+
+  match res {
+    Err(e) => {
+      eprint!("{}", e);
+      Err("数据库查询错误")
+    },
+    Ok(res) => {
+      Ok(res)
+    }
+  }
 }
 
-pub fn add_one_role(conn: &mut Conn, target_role: &RoleDTO) -> QueryResult<bool> {
-  diesel_to_res(diesel::insert_into(role)
-    .values(target_role)
-    .execute(conn))
+pub async fn add_one_role<'a>(
+  pool: &web::Data<DbPool>,
+  role: RoleDTO,
+) -> Result<(), &'a str> {
+  let mut conn = pool.get().unwrap();
+  let res = web::block(
+    move || dao::role::add_one_role(&mut conn, &role)
+  ).await;
+  match res {
+    Err(e) => {
+      eprint!("{}", e);
+      Err("数据库错误")
+    },
+    Ok(res) => {
+      match res {
+        Ok(flag) => match flag {
+          true => Ok(()),
+          false => Err("添加失败"),
+        },
+        Err(e) => {
+          eprint!("{}", e);
+          Err("数据库错误")
+        }
+      }
+    }
+  }
 }
 
-pub fn update_one_role(conn: &mut Conn, target_role: &UpdateRoleDTO) -> QueryResult<bool> {
-  let target = role.filter(id.eq(target_role.id.clone()));
-  diesel_to_res(diesel::update(target)
-    .set(target_role)
-    .execute(conn))
-}
-
-pub fn delete_one_role(conn: &mut Conn, target_id: String) -> QueryResult<bool> {
-  let target = role.filter(id.eq(target_id));
-  diesel_to_res(diesel::delete(target)
-    .execute(conn))
+pub async fn update_one_role<'a>(
+  pool: &web::Data<DbPool>,
+  role: UpdateRoleDTO,
+) -> Result<(), &'a str> {
+  let mut conn = pool.get().unwrap();
+  let res = web::block(
+    move || dao::role::update_one_role(&mut conn, &role)
+  ).await;
+  match res {
+    Err(e) => {
+      eprint!("{}", e);
+      Err("数据库错误")
+    },
+    Ok(res) => {
+      match res {
+        Ok(flag) => match flag {
+          true => Ok(()),
+          false => Err("添加失败"),
+        },
+        Err(e) => {
+          eprint!("{}", e);
+          Err("数据库错误")
+        }
+      }
+    }
+  }
 }

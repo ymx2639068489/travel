@@ -1,33 +1,62 @@
+
+use actix_web::web;
 use crate::{
-  models::{admin::*, company::*, role::*},
-  schema::{admin, company, role},
+  models::admin::*,
+  dao,
+  utils,
 };
-use diesel::{prelude::*, QueryResult};
-
-type Conn = diesel::MysqlConnection;
-
-pub fn query_admin_by_username(
-  conn: &mut Conn,
-  target_username: &String
-) -> QueryResult<AdminJoinDTO> {
-  let (q_admin, q_role, q_company) = admin::table
-    .inner_join(role::table)
-    .inner_join(company::table)
-    .filter(admin::username.eq(target_username))
-    .select((AdminDTO::as_select(), RoleDTO::as_select(), CompanyDTO::as_select()))
-    .first::<(AdminDTO, RoleDTO, CompanyDTO)>(conn)?;
-  Ok(q_admin.to_response_admin_dto(q_role, q_company))
+/**
+ * 用户登录
+ */
+pub async fn admin_login<'a>(
+  admin_login: &AdminLogin,
+  pool: web::Data<crate::DbPool>,
+) -> Result<String, &'a str> {
+  let mut conn = pool.get().expect("");
+  let adminname = admin_login.username.clone();
+  let q_admin = web::block(move || 
+    dao::admin::query_admin_by_username(&mut conn, &adminname)
+  ).await;
+  match q_admin {
+    Ok(q_admin) => {
+      match q_admin {
+        Ok(admin) => {
+          if admin.password.eq(&admin_login.password) {
+            Ok(utils::auth::back_auth::create_jwt(&admin.id.clone()))
+          } else {
+            Err("账号密码错误")
+          }
+        },
+        Err(_) => Err("查无此人")
+      }
+    },
+    Err(e) => {
+      eprintln!("{}", e);
+      Err("数据库错误")
+    }
+  }
 }
 
-pub fn query_admin_by_id(
-  conn: &mut Conn,
-  target_id: &String
-) -> QueryResult<AdminJoinDTO> {
-  let (q_admin, q_role, q_company) = admin::table
-    .inner_join(role::table)
-    .inner_join(company::table)
-    .filter(admin::id.eq(target_id))
-    .select((AdminDTO::as_select(), RoleDTO::as_select(), CompanyDTO::as_select()))
-    .first::<(AdminDTO, RoleDTO, CompanyDTO)>(conn)?;
-  Ok(q_admin.to_response_admin_dto(q_role, q_company))
+
+pub async fn get_admin_by_id<'a>(
+  pool: &web::Data<crate::DbPool>,
+  admin_id: String,
+) -> Result<AdminJoinDTO, &'a str> {
+  let mut conn = pool.get().expect("");
+  let q_admin = web::block(move || 
+    dao::admin::query_admin_by_id(&mut conn, &admin_id)
+  ).await;
+
+  match q_admin {
+    Err(e) => {
+      eprintln!("{:?}", e);
+      Err("数据库查询错误")
+    },
+    Ok(q_admin) => {
+      match q_admin {
+        Ok(admin) => Ok(admin),
+        Err(_) => Err("查无此管理")
+      }
+    }
+  }
 }

@@ -5,6 +5,7 @@ use crate::schema::{admin, role, company};
 use crate::models::{
   company::CompanyDTO,
   role::RoleDTO,
+  RemoveImportInformation,
 };
 #[derive(Deserialize)]
 pub struct AdminLogin {
@@ -26,7 +27,14 @@ pub struct AdminDTO {
   pub nickname: Option<String>,
 }
 
-#[derive(Serialize)]
+impl RemoveImportInformation for AdminDTO {
+  fn remove_import_information(mut self) -> Self {
+    self.password = "".to_string();
+    self
+  }
+}
+
+#[derive(Serialize, Debug)]
 pub struct AdminJoinDTO {
   pub id: String,
   pub role: RoleDTO,
@@ -35,6 +43,13 @@ pub struct AdminJoinDTO {
   pub password: String,
   pub avatar: Option<String>,
   pub nickname: Option<String>,
+}
+
+impl RemoveImportInformation for AdminJoinDTO {
+  fn remove_import_information(mut self) -> Self {
+      self.password = "".to_string();
+      self
+  }
 }
 
 impl AdminDTO {

@@ -1,28 +1,75 @@
 
-use diesel::{prelude::*, QueryDsl, QueryResult, RunQueryDsl};
 
-type Conn = diesel::MysqlConnection;
-
+use actix_web::web;
 use crate::{
-  schema::company::dsl::*,
-  models::company::*,
-  utils::sql_response::diesel_to_res,
+  dao,
+  models::company::*
 };
 
-pub fn query_all_company(conn: &mut Conn) -> QueryResult<Vec<CompanyDTO>> {
-  crate::schema::company::table
-   .load::<CompanyDTO>(conn)
+pub async fn get_all_company<'a>(
+  pool: &web::Data<crate::DbPool>,
+) -> Result<Vec<CompanyDTO>, &'a str> {
+  let mut conn = pool.get().unwrap();
+  let res = web::block(move ||
+    dao::company::query_all_company(&mut conn)
+  ).await;
+  match res {
+    Err(e) => {
+      eprint!("{}", e);
+      Err("数据库查询错误")
+    },
+    Ok(res) => match res {
+      Err(e) => {
+        eprint!("{}", e);
+        Err("数据库查询错误")
+      },
+      Ok(list) => Ok(list),
+    }
+  }
+}
+pub async fn insert_one_company<'a>(
+  pool: &web::Data<crate::DbPool>,
+  company: CompanyDTO,
+) -> Result<(), &'a str> {
+  let mut conn = pool.get().unwrap();
+  let res = web::block(move || 
+    dao::company::add_company(&mut conn, &company)
+  ).await;
+
+  match res {
+    Err(e) => {
+      eprint!("{}", e);
+      Err("数据库错误")
+    },
+    Ok(res) => match res {
+      Err(e) => {
+        eprint!("{}", e);
+        Err("数据库错误")
+      },
+      Ok(res) => if res { Ok(()) } else { Err("插入失败") },
+    }
+  }
 }
 
-pub fn add_company(conn: &mut Conn, target_company: &CompanyDTO) -> QueryResult<bool> {
-  diesel_to_res(diesel::insert_into(company)
-   .values(target_company)
-   .execute(conn))
-}
-
-pub fn update_company(conn: &mut Conn, target_company: &CompanyDTO) -> QueryResult<bool> {
-  let target = company.filter(id.eq(target_company.id.clone()));
-  diesel_to_res(diesel::update(target)
-   .set(target_company)
-   .execute(conn))
+pub async fn update_company<'a>(
+  pool: &web::Data<crate::DbPool>,
+  company: CompanyDTO
+) -> Result<(), &'a str> {
+  let mut conn = pool.get().unwrap();
+  let res = web::block(move || 
+    dao::company::update_company(&mut conn, &company)
+  ).await;
+  match res {
+    Err(e) => {
+      eprint!("{}", e);
+      Err("数据库错误")
+    },
+    Ok(res) => match res {
+      Err(e) => {
+        eprint!("{}", e);
+        Err("数据库错误")
+      },
+      Ok(res) => if res { Ok(()) } else { Err("更新失败") },
+    }
+  }
 }
