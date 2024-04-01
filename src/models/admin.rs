@@ -1,7 +1,7 @@
 
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
-use crate::schema::{admin, role, company};
+
 use crate::models::{
   company::CompanyDTO,
   role::RoleDTO,
@@ -14,9 +14,9 @@ pub struct AdminLogin {
 }
 
 #[derive(Deserialize, Debug, Clone, Serialize, Queryable, Selectable)]
-#[diesel(table_name = admin)]
-#[diesel(belongs_to(role::dsl::role, foreign_key = role_id))]
-#[diesel(belongs_to(company::dsl::company, foreign_key = company_id))]
+#[diesel(table_name = crate::schema::admin)]
+#[diesel(belongs_to(crate::schema::role::dsl::role, foreign_key = role_id))]
+#[diesel(belongs_to(crate::schema::company::dsl::company, foreign_key = company_id))]
 pub struct AdminDTO {
   pub id: String,
   pub role_id: Option<String>,
@@ -34,7 +34,7 @@ impl RemoveImportInformation for AdminDTO {
   }
 }
 #[derive(AsChangeset, Deserialize)]
-#[diesel(table_name = admin)]
+#[diesel(table_name = crate::schema::admin)]
 pub struct UpdateAdminDTO {
   pub id: String,
   pub role_id: Option<String>,
