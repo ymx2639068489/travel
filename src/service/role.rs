@@ -1,13 +1,13 @@
 use actix_web::web;
 use crate::{
-  dao, models::role::*, DbPool, ResponseList
+  dao, models::role::*, DbPool
 };
 
 pub async fn get_role_by_page<'a>(
   pool: &web::Data<DbPool>,
   page: i64,
   per_page: i64
-) -> Result<ResponseList<RoleDTO>, &'a str> {
+) -> Result<Vec<RoleDTO>, &'a str> {
   let mut conn = pool.get().unwrap();
   let res = web::block(
     move || dao::role::get_role_by_page(&mut conn, page, per_page)
@@ -18,8 +18,12 @@ pub async fn get_role_by_page<'a>(
       eprint!("{}", e);
       Err("数据库查询错误")
     },
-    Ok(res) => {
-      Ok(res)
+    Ok(res) => match res {
+      Err(e) => {
+        eprint!("{}", e);
+        Err("数据库查询错误")
+      },
+      Ok(list) => Ok(list)
     }
   }
 }

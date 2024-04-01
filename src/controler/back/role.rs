@@ -30,7 +30,7 @@ async fn get_all(
   ).await;
   Ok(match res {
     Err(e) => Response::client_error(e),
-    Ok(res) => Response::ok_pager(res)
+    Ok(res) => Response::ok_list(res)
   })
 }
 

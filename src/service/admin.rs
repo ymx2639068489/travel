@@ -66,12 +66,11 @@ pub async fn get_admin_by_id<'a>(
  */
 pub async fn get_admin_list<'a>(
   pool: &web::Data<DbPool>,
-  page: i64,
-  per_page: i64,
+  query_pager: AdminQueryPager
 ) -> Result<ResponseList<AdminDTO>, &'a str> {
   let mut conn = pool.get().expect("");
   let res = web::block(move || 
-    dao::admin::query_admin_list(&mut conn, page, per_page)
+    dao::admin::query_admin_list(&mut conn, query_pager)
   ).await;
   match res {
     Err(e) => {

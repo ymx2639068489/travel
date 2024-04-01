@@ -5,7 +5,6 @@ use crate::{
   models::{
     admin::*,
     RemoveImportInformation,
-    QueryPager
   },
   service,
   DbPool,
@@ -42,14 +41,13 @@ async fn getinfo(pool: web::Data<DbPool>, jwt: JwtAdminData) -> Res<impl Respond
 #[get("/get_list")]
 #[verify_permissions(admin, query)]
 async fn get_admin(
-  pager: web::Query<QueryPager>,
+  pager: web::Query<AdminQueryPager>,
   pool: web::Data<DbPool>,
   jwt: JwtAdminData,
 ) -> Res<impl Responder> {
   let res = service::admin::get_admin_list(
     &pool,
-    pager.page,
-    pager.per_page,
+    pager.into_inner()
   ).await;
   Ok(match res {
     Err(e) => Response::client_error(e),

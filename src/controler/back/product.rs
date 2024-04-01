@@ -13,7 +13,7 @@ use crate::{
 };
 use verify_role::verify_permissions;
 /**
- * 获取管理员列表
+ * 获取产品列表
  */
 #[get("/get_list")]
 #[verify_permissions(product, query)]
@@ -46,7 +46,7 @@ async fn get_product(
 
 
 /**
- * 更新管理员
+ * 更新产品
  */
 #[put("/update")]
 #[verify_permissions(product, update)]

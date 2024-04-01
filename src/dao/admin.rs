@@ -23,13 +23,28 @@ pub fn query_admin_by_username(
 
 pub fn query_admin_list(
   conn: &mut Conn,
-  page: i64,
-  per_page: i64,
+  pager: AdminQueryPager,
 ) -> ResponseList<AdminDTO> {
-  crate::schema::admin::table
-    .into_boxed()
-    .page(Some(page))
-    .per_page(Some(per_page))
+  use crate::schema::admin::dsl::*;
+  let mut sql = crate::schema::admin::table
+    .into_boxed();
+  if let Some(target_username) = pager.username {
+    println!("{}", target_username);
+    sql = sql.filter(username.like("%".to_owned() + &target_username + "%"));
+  }
+  if let Some(target_nickname) = pager.nickname {
+    println!("{}", target_nickname);
+    sql = sql.filter(nickname.like("%".to_owned() + &target_nickname + "%"));
+  }
+  if let Some(target_phone) = pager.phone {
+    sql = sql.filter(phone.like("%".to_owned() + &target_phone + "%"));
+  }
+  if let Some(target_company_id) = pager.company_id {
+    sql = sql.filter(company_id.eq(target_company_id));
+  }
+  sql
+    .page(Some(pager.page))
+    .per_page(Some(pager.per_page))
     .paginate::<AdminDTO>(conn)
     .unwrap()
 }

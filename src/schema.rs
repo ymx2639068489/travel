@@ -10,6 +10,8 @@ diesel::table! {
         company_id -> Nullable<Varchar>,
         #[max_length = 20]
         username -> Nullable<Varchar>,
+        #[max_length = 20]
+        phone -> Nullable<Varchar>,
         #[max_length = 100]
         password -> Varchar,
         #[max_length = 4000]

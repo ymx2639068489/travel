@@ -10,6 +10,7 @@ create table  admin
        company_id        VARCHAR(36) comment '所属公司',
        username          VARCHAR(20) comment '账号',
        password          VARCHAR(100) not null comment '密码',
+       phone             VARCHAR(20) not null comment '手机号',
        avatar            VARCHAR(4000) comment '头像',
        nickname          VARCHAR(20) comment '用户名'
 ) comment '管理员';

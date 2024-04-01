@@ -22,6 +22,7 @@ pub struct AdminDTO {
   pub role_id: Option<String>,
   pub company_id: Option<String>,
   pub username: Option<String>,
+  pub phone: Option<String>,
   pub password: String,
   pub avatar: Option<String>,
   pub nickname: Option<String>,
@@ -41,6 +42,7 @@ pub struct UpdateAdminDTO {
   pub company_id: Option<String>,
   pub username: Option<String>,
   pub password: Option<String>,
+  pub phone: Option<String>,
   pub avatar: Option<String>,
   pub nickname: Option<String>,
 }
@@ -50,6 +52,7 @@ pub struct AdminJoinDTO {
   pub id: String,
   pub role: RoleDTO,
   pub company: CompanyDTO,
+  pub phone: Option<String>,
   pub username: Option<String>,
   pub password: String,
   pub avatar: Option<String>,
@@ -69,10 +72,20 @@ impl AdminDTO {
       id: self.id.clone(),
       role: role_dto,
       company: company_dto,
+      phone: self.phone.clone(),
       username: self.username.clone(),
       password: self.password.clone(),
       avatar: self.avatar.clone(),
       nickname: self.nickname.clone(),
     }
   }
+}
+#[derive(Debug, Deserialize)]
+pub struct AdminQueryPager {
+  pub page: i64,
+  pub per_page: i64,
+  pub username: Option<String>,
+  pub nickname: Option<String>,
+  pub phone: Option<String>,
+  pub company_id: Option<String>,
 }

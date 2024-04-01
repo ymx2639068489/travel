@@ -4,20 +4,21 @@ use diesel::{prelude::*, QueryResult};
 type Conn = diesel::MysqlConnection;
 
 use crate::{
-  Paginate,
-  ResponseList,
   schema::role::dsl::*,
   models::role::*,
   utils::sql_response::diesel_to_res,
 };
 
-pub fn get_role_by_page(conn: &mut Conn, page: i64, per_page: i64) -> ResponseList<RoleDTO> {
+pub fn get_role_by_page(conn: &mut Conn, page: i64, per_page: i64) -> QueryResult<Vec<RoleDTO>> {
+  // 没必要分页
+  // crate::schema::role::table
+  //   .into_boxed()
+  //   .page(Some(page))
+  //   .per_page(Some(per_page))
+  //   .paginate::<RoleDTO>(conn)
+  //   .unwrap()
   crate::schema::role::table
-    .into_boxed()
-    .page(Some(page))
-    .per_page(Some(per_page))
-    .paginate::<RoleDTO>(conn)
-    .unwrap()
+    .load::<RoleDTO>(conn)
 }
 
 pub fn add_one_role(conn: &mut Conn, target_role: &RoleDTO) -> QueryResult<bool> {
