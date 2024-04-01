@@ -1,5 +1,5 @@
 use actix_web::{
-  get, post, web, put, Responder, Result as Res
+  get, post, web, Responder, Result as Res
 };
 use verify_role::verify_permissions;
 

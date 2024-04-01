@@ -13,7 +13,7 @@ pub struct AdminLogin {
   pub password: String,
 }
 
-#[derive(Deserialize, Debug, Clone, Serialize, Queryable, Selectable, Associations, PartialEq)]
+#[derive(Deserialize, Debug, Clone, Serialize, Queryable, Selectable)]
 #[diesel(table_name = admin)]
 #[diesel(belongs_to(role::dsl::role, foreign_key = role_id))]
 #[diesel(belongs_to(company::dsl::company, foreign_key = company_id))]
@@ -32,6 +32,17 @@ impl RemoveImportInformation for AdminDTO {
     self.password = "".to_string();
     self
   }
+}
+#[derive(AsChangeset, Deserialize)]
+#[diesel(table_name = admin)]
+pub struct UpdateAdminDTO {
+  pub id: String,
+  pub role_id: Option<String>,
+  pub company_id: Option<String>,
+  pub username: Option<String>,
+  pub password: Option<String>,
+  pub avatar: Option<String>,
+  pub nickname: Option<String>,
 }
 
 #[derive(Serialize, Debug)]

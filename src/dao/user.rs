@@ -23,12 +23,6 @@ pub fn query_user_by_id(conn: &mut Conn, user_id: &i32) -> QueryResult<UserDTO> 
     .first::<UserDTO>(conn)
 }
 /**
- * 通过id查询用户,但过滤掉密码
- */
-// pub fn query_user_no_pw_by_id(conn: &mut Conn, user_id: &i32) -> QueryResult<UserDTO> {
-//   query_user_by_id(conn, user_id)
-// }
-/**
  * 更新用户信息
  */
 pub fn update_profile(conn: &mut Conn, user_id: i32, target_user: &UpdateUserDTO) -> QueryResult<bool> {
