@@ -25,3 +25,8 @@ pub fn update_company(conn: &mut Conn, target_company: &CompanyDTO) -> QueryResu
    .set(target_company)
    .execute(conn))
 }
+pub fn delete_company(conn: &mut Conn, target_company_id: String) -> QueryResult<bool> {
+  let target = company.filter(id.eq(target_company_id));
+  diesel_to_res(diesel::delete(target)
+   .execute(conn))
+}

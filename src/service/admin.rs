@@ -141,3 +141,33 @@ pub async fn delete_admin_by_id<'a>(
   }
 }
 
+/**
+ * 新增一个管理员
+ */
+pub async fn insert_one_admin<'a>(
+  pool: &web::Data<DbPool>,
+  target_admin: AddAdminDTO
+) -> Result<(), &'a str> {
+  let mut conn = pool.get().expect("");
+  let target_admin_dto = target_admin.to_admin_dto();
+  let res = web::block(move ||
+    dao::admin::insert_one_admin(&mut conn, &target_admin_dto)
+  ).await;
+
+  match res {
+    Err(e) => {
+      eprintln!("{:?}", e);
+      Err("数据库错误")
+    },
+    Ok(res) => match res {
+      Err(e) => {
+        eprintln!("{:?}", e);
+        Err("新增失败")
+      },
+      Ok(res) => match res {
+        true => Ok(()),
+        false => Err("新增失败"),
+      }
+    }
+  }
+}

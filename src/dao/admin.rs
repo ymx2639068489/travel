@@ -82,3 +82,24 @@ pub fn delete_admin_by_id(
   diesel_to_res(diesel::delete(target)
    .execute(conn))
 }
+
+pub fn query_admin_by_role_id(
+  conn: &mut Conn,
+  target_role_id: String
+) -> QueryResult<Vec<AdminDTO>> {
+  use crate::schema::admin::dsl::*;
+
+  crate::schema::admin::table.filter(
+    role_id.eq(target_role_id)
+  ).load::<AdminDTO>(conn)
+}
+
+pub fn insert_one_admin(
+  conn: &mut Conn,
+  target_admin: &AdminDTO
+) -> QueryResult<bool>{
+  use crate::schema::admin::dsl::*;
+  diesel_to_res(diesel::insert_into(admin)
+   .values(target_admin)
+   .execute(conn))
+}

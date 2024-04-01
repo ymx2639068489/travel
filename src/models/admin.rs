@@ -13,7 +13,7 @@ pub struct AdminLogin {
   pub password: String,
 }
 
-#[derive(Deserialize, Debug, Clone, Serialize, Queryable, Selectable)]
+#[derive(Deserialize, Debug, Clone, Serialize, Queryable, Selectable, Insertable)]
 #[diesel(table_name = crate::schema::admin)]
 #[diesel(belongs_to(crate::schema::role::dsl::role, foreign_key = role_id))]
 #[diesel(belongs_to(crate::schema::company::dsl::company, foreign_key = company_id))]
@@ -88,4 +88,28 @@ pub struct AdminQueryPager {
   pub nickname: Option<String>,
   pub phone: Option<String>,
   pub company_id: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct AddAdminDTO {
+  pub role_id: String,
+  pub company_id: String,
+  pub username: String,
+  pub phone: String,
+  pub nickname: String,
+}
+
+impl AddAdminDTO {
+  pub fn to_admin_dto(&self) -> AdminDTO {
+    AdminDTO {
+      id: uuid::Uuid::new_v4().to_string(),
+      password: "123456".to_string(),
+      avatar: Some("https://ts2.cn.mm.bing.net/th?id=OIP-C.tm6WK2JPevj3uX9Y7AH9oAHaHa&w=250&h=250&c=8&rs=1&qlt=90&o=6&pid=3.1&rm=2".to_string()),
+      role_id: Some(self.role_id.clone()),
+      company_id: Some(self.company_id.clone()),
+      username: Some(self.username.clone()),
+      phone: Some(self.phone.clone()),
+      nickname: Some(self.nickname.clone()),
+    }
+  }
 }

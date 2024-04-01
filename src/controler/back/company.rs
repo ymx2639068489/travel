@@ -1,6 +1,7 @@
 use actix_web::{
-  get, post, web, Responder, Result as Res
+  get, post, web, Responder, Result as Res, delete
 };
+use serde::Deserialize;
 use verify_role::verify_permissions;
 
 use crate::{
@@ -24,41 +25,41 @@ async fn add_one(
   pool: web::Data<DbPool>,
   jwt: JwtAdminData,
 ) -> Res<impl Responder> {
-  let res =service::company::insert_one_company(
+  let res = service::company::insert_one_company(
     &pool,
     company.to_company_dto(),
   ).await;
   Ok(match res {
     Ok(_) => Response::ok("", "新增成功"),
-    Err(_) => Response::server_error("插入失败"),
+    Err(e) => Response::server_error(e),
+  })
+}
+#[derive(Debug, Deserialize)]
+pub struct CompanyId {
+  pub id: String,
+}
+#[delete("/insert")]
+#[verify_permissions(company, delete)]
+async fn delete_one_company(
+  company: web::Json<CompanyId>,
+  pool: web::Data<DbPool>,
+  jwt: JwtAdminData,
+) -> Res<impl Responder> {
+  let res = service::company::delete_company(
+    &pool,
+    company.id.clone(),
+  ).await;
+  Ok(match res {
+    Ok(_) => Response::ok("", "新增成功"),
+    Err(e) => Response::server_error(e),
   })
 }
 
-/**
- * 好像没有更新的必要
- */
-// #[put("/update")]
-// #[verify_permissions(company, update)]
-// async fn update_one(
-//   company: web::Json<CompanyDTO>,
-//   pool: web::Data<DbPool>,
-//   jwt: JwtAdminData,
-// ) -> Res<impl Responder> {
-//   let res = service::company::update_company(
-//     &pool,
-//     company.into_inner()
-//   ).await;
-//   Ok(match res {
-//     Ok(_) => Response::ok("", "更新成功"),
-//     Err(_) => Response::server_error("更新失败"),
-//   })
-// }
 
 
 pub fn init_routes(cfg: &mut web::ServiceConfig) {
   cfg
     .service(get_all_compnay)
     .service(add_one)
-    // .service(update_one)
     ;
 }

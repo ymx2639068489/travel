@@ -30,7 +30,7 @@ async fn getinfo(pool: web::Data<DbPool>, jwt: JwtAdminData) -> Res<impl Respond
   ).await;
   Ok(match res {
     Ok(user) => Response::ok(user.remove_import_information(), "获取成功"),
-    Err(_) => Response::client_error("error")
+    Err(e) => Response::client_error(e)
   })
 }
 
@@ -72,7 +72,7 @@ async fn update_admin(
   ).await;
   Ok(match res {
     Ok(_) => Response::ok("", "更新成功"),
-    Err(_) => Response::server_error("更新失败"),
+    Err(e) => Response::server_error(e),
   })
 }
 
@@ -92,10 +92,29 @@ async fn delete_admin(
   ).await;
   Ok(match res {
     Ok(_) => Response::ok("", "删除成功"),
-    Err(_) => Response::server_error("删除失败"),
+    Err(e) => Response::server_error(e),
   })
 }
 
+/**
+ * 添加管理员
+ */
+#[post("/insert")]
+#[verify_permissions(admin, insert)]
+async fn add_one_admin(
+  pool: web::Data<DbPool>,
+  jwt: JwtAdminData,
+  target_admin: web::Json<AddAdminDTO>,
+) -> Res<impl Responder> {
+  let res = service::admin::insert_one_admin(
+    &pool,
+    target_admin.into_inner()
+  ).await;
+  Ok(match res {
+    Ok(_) => Response::ok("", "新增成功"),
+    Err(e) => Response::server_error(e),
+  })
+}
 pub fn init_routes(cfg: &mut web::ServiceConfig) {
   cfg
     .service(login)
@@ -103,5 +122,6 @@ pub fn init_routes(cfg: &mut web::ServiceConfig) {
     .service(get_admin)
     .service(update_admin)
     .service(delete_admin)
+    .service(add_one_admin)
     ;
 }
