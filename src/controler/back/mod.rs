@@ -13,7 +13,7 @@ pub fn init_routes(cfg: &mut web::ServiceConfig) {
     .service(web::scope("/role").configure(role::init_routes))
     .service(web::scope("/company").configure(company::init_routes))
     .service(web::scope("/base_product").configure(base_product::init_routes))
-    // .service(web::scope("/product").configure(product::init_routes))
+    .service(web::scope("/product").configure(product::init_routes))
     .service(web::scope("/salesman").configure(salesman::init_routes))
     .service(web::scope("/custom").configure(custom::init_routes))
     

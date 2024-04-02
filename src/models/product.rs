@@ -2,7 +2,7 @@ use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use bigdecimal::BigDecimal;
 
-#[derive(Clone, Debug, Queryable)]
+#[derive(Clone, Debug, Queryable, Insertable)]
 #[diesel(table_name = crate::schema::product)]
 
 pub struct ProductDTO {
@@ -31,6 +31,7 @@ pub struct ResProductDTO {
   pub product_type: String,
   pub notes: Option<String>,
 }
+
 impl ProductDTO {
   pub fn to_res_dto(&self) -> ResProductDTO {
     let mut res : String = String::from("0");
@@ -91,6 +92,56 @@ impl ReqUpdateProductDTO {
       duration: self.duration.clone(),
       product_type: self.product_type.clone(),
       notes: self.notes.clone(),
+    }
+  }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ProductQueryDTO {
+  pub page: i64,
+  pub page_size: i64,
+  pub base_product_id: Option<String>,
+  // 开始时间范围
+  pub start_time_l: Option<chrono::NaiveDateTime>,
+  pub start_time_r: Option<chrono::NaiveDateTime>,
+  // 结束时间范围
+  pub end_time_l: Option<chrono::NaiveDateTime>,
+  pub end_time_r: Option<chrono::NaiveDateTime>,
+  // 人数
+  pub people_number: Option<i32>,
+  // 团期
+  pub duration: Option<i32>,
+  // 产品类型
+  pub product_type: Option<String>,
+  pub notes: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct AddProductDTO {
+  pub id: String,
+  pub base_product_id: String,
+  pub create_at: chrono::NaiveDateTime,
+  pub price: String,
+  pub start_time: chrono::NaiveDateTime,
+  pub end_time: chrono::NaiveDateTime,
+  pub people_number: i32,
+  pub duration: i32,
+  pub product_type: String,
+  pub notes: Option<String>,
+}
+impl AddProductDTO {
+  pub fn to_product_dto(self) -> ProductDTO {
+    ProductDTO {
+      id: self.id,
+      base_product_id: Some(self.base_product_id),
+      create_at: self.create_at,
+      price: Some(self.price.parse().unwrap()),
+      start_time: self.start_time,
+      end_time: self.end_time,
+      people_number: self.people_number,
+      duration: self.duration,
+      product_type: self.product_type,
+      notes: self.notes,
     }
   }
 }
