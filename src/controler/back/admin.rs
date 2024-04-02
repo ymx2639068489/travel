@@ -12,6 +12,7 @@ use crate::{
   Response,
 };
 use verify_role::verify_permissions;
+
 #[post("/login")]
 async fn login(admin_login: web::Json<AdminLogin>, pool: web::Data<DbPool>) -> Res<impl Responder> {
   let res = service::admin::admin_login(&admin_login, pool)
@@ -115,6 +116,7 @@ async fn add_one_admin(
     Err(e) => Response::server_error(e),
   })
 }
+
 pub fn init_routes(cfg: &mut web::ServiceConfig) {
   cfg
     .service(login)

@@ -12,7 +12,6 @@ pub mod models;
 pub mod dao;
 pub use models::{
   ResponseList,
-  Paginate,
   Response,
   QueryPager,
 };

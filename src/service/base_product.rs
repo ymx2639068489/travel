@@ -3,22 +3,25 @@ use actix_web::web;
 use crate::{models::base_product::*, ResponseList, dao};
 
 
-pub async fn get_all_base_prudoct<'a>(
+pub async fn get_base_prudoct_list<'a>(
   pool: &web::Data<crate::DbPool>,
-  page: i64,
-  per_page: i64
+  pager: BaseProductQueryDTO
 ) -> Result<ResponseList<BaseProductDTO>, &'a str> {
   let mut conn = pool.get().unwrap();
   let res = web::block(move ||
-    dao::base_product::query_all_base_product(&mut conn, page, per_page)
+    dao::base_product::query_all_base_product(&mut conn, pager)
   ).await;
   match res {
     Err(e) => {
       eprint!("{}", e);
       Err("数据库查询错误")
     },
-    Ok(res) => {
-      Ok(res)
+    Ok(res) => match res {
+      Err(e) => {
+        eprint!("{}", e);
+        Err("查询错误")
+      },
+      Ok(res) => Ok(res),
     }
   }
 }
@@ -79,4 +82,32 @@ pub async fn insert_base_product<'a>(
   }
 }
 
+
+pub async fn delete_base_product<'a>(
+  pool: &web::Data<crate::DbPool>,
+  id: String
+) -> Result<(), &'a str> {
+  let mut conn = pool.get().unwrap();
+  let res = web::block(move ||
+    dao::base_product::delete_base_product(&mut conn, &id)
+  ).await;
+
+  match res {
+    Err(e) => {
+      eprint!("{}", e);
+      Err("数据库错误")
+    },
+    Ok(res) => match res {
+      Err(e) => {
+        eprint!("{}", e);
+        Err("删除失败, 该基础产品可能已经推出产品进行售卖了")
+      },
+      Ok(res) => match res {
+        true => Ok(()),
+        false => Err("删除失败, 请检查id"),
+      }
+    }
+  }
+
+}
 

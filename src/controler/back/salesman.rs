@@ -1,37 +1,42 @@
+use verify_role::verify_permissions;
 
 use actix_web::{
   delete, get, post, put, web, Responder, Result as Res
 };
-
 use crate::{
-  models::{role::*, QueryUuid}, service, DbPool, JwtAdminData, Response
+  models::{salesman::*, QueryUuid}, service, DbPool, JwtAdminData, Response
 };
 
-use verify_role::verify_permissions;
-
-#[get("/get_all")]
-#[verify_permissions(role, query)]
-async fn get_all(
+#[get("/get_list")]
+#[verify_permissions(salesman, query)]
+pub async fn get_list(
   pool: web::Data<DbPool>,
   jwt: JwtAdminData,
-) -> Res<impl Responder>{
-  let res = service::role::get_role_by_page(&pool).await;
+  pager: web::Query<SalesmanQueryPager>,
+) -> Res<impl Responder> {
+  let res = service::salesman::get_salesman_list(
+    &pool,
+    pager.into_inner()
+  ).await;
+
   Ok(match res {
     Err(e) => Response::client_error(e),
-    Ok(res) => Response::ok_list(res)
+    Ok(list) => {
+      Response::ok_pager(list)
+    },
   })
 }
 
 #[post("/insert")]
-#[verify_permissions(role, insert)]
-async fn add_one_role(
-  role: web::Json<AddRoleDTO>,
+#[verify_permissions(salesman, insert)]
+async fn add_one_salesman(
+  target_salesman: web::Json<AddSalesmanDTO>,
   pool: web::Data<DbPool>,
   jwt: JwtAdminData,
 ) -> Res<impl Responder> {
-  let res = service::role::add_one_role(
+  let res = service::salesman::insert_salesman(
     &pool,
-    role.to_role_dto(),
+    target_salesman.into_inner(),
   ).await;
   Ok(match res {
     Ok(_) => Response::ok("", "添加成功"),
@@ -40,30 +45,32 @@ async fn add_one_role(
 }
 
 #[put("/update")]
-#[verify_permissions(role, query)]
-async fn update_one_role(
-  role: web::Json<UpdateRoleDTO>,
+#[verify_permissions(salesman, query)]
+async fn update_one_salesman(
+  target_salesman: web::Json<UpdateSalesmanDTO>,
   pool: web::Data<DbPool>,
   jwt: JwtAdminData,
 ) -> Res<impl Responder> {
-  let res = service::role::update_one_role(&pool, role.into_inner()).await;
+  let res = service::salesman::update_salesman(
+    &pool,
+    target_salesman.into_inner()
+  ).await;
   Ok(match res {
     Ok(_) => Response::ok("", "更新成功"),
     Err(e) => Response::server_error(e),
   })
 }
 
-
 #[delete("/delete")]
-#[verify_permissions(role, delete)]
+#[verify_permissions(salesman, delete)]
 async fn delete_one_role(
   pool: web::Data<DbPool>,
   jwt: JwtAdminData,
-  target_role: web::Query<QueryUuid>,
+  target_salesman: web::Query<QueryUuid>,
 ) -> Res<impl Responder> {
   let res = service::role::delete_role_by_id(
     &pool,
-    target_role.id.clone()
+    target_salesman.id.clone()
   ).await;
   Ok(match res {
     Ok(_) => Response::ok("", "删除成功"),
@@ -73,9 +80,9 @@ async fn delete_one_role(
 
 pub fn init_routes(cfg: &mut web::ServiceConfig) {
   cfg
-    .service(get_all)
-    .service(add_one_role)
-    .service(update_one_role)
+    .service(get_list)
+    .service(add_one_salesman)
+    .service(update_one_salesman)
     .service(delete_one_role)
     ;
 }

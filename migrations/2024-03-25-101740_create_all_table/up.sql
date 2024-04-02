@@ -56,7 +56,7 @@ create table  salesman
        id                INT primary key auto_increment not null comment '编号',
        company_id        VARCHAR(36) comment '所属公司',
        username          VARCHAR(20) not null comment '销售员姓名',
-       phone             VARCHAR(20) comment '销售员电话'
+       phone             VARCHAR(20) not null comment '销售员电话'
 ) comment '销售员';
 create unique index IDU_salesman_phone on salesman(phone);
 

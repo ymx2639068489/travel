@@ -67,7 +67,7 @@ pub async fn get_admin_by_id<'a>(
 pub async fn get_admin_list<'a>(
   pool: &web::Data<DbPool>,
   query_pager: AdminQueryPager
-) -> Result<ResponseList<AdminDTO>, &'a str> {
+) -> Result<ResponseList<AdminJoinDTO>, &'a str> {
   let mut conn = pool.get().expect("");
   let res = web::block(move || 
     dao::admin::query_admin_list(&mut conn, query_pager)
@@ -77,8 +77,12 @@ pub async fn get_admin_list<'a>(
       eprintln!("{:?}", e);
       Err("数据库查询错误")
     },
-    Ok(res) => {
-      Ok(res)
+    Ok(res) => match res {
+      Err(e) => {
+        eprintln!("{:?}", e);
+        Err("数据库查询错误")
+      },
+      Ok(res) => Ok(res)
     }
   }
 }

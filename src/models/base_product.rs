@@ -39,3 +39,10 @@ pub struct UpdateBaseProductDTO {
   pub file_list: Option<String>,
   pub notes: Option<String>,
 }
+
+#[derive(Deserialize, Clone)]
+pub struct BaseProductQueryDTO {
+  pub page: i64,
+  pub page_size: i64,
+  pub name: Option<String>,
+}

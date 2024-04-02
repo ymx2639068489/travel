@@ -8,9 +8,8 @@ use super::paginated;
 #[derive(Serialize)]
 pub struct Pager {
   pub page: i64,
-  pub per_page: i64,
+  pub page_size: i64,
   pub total: i64,
-  pub last_page: i64,
 }
 
 #[derive(Serialize)]
@@ -60,9 +59,8 @@ impl Response {
   pub fn ok_pager<'a, T>(pager: paginated::ResponseList<T>) -> ResponseWrapper<'a, T> {
     let pages = Pager {
       page: pager.page,
-      per_page: pager.per_page,
+      page_size: pager.page_size,
       total: pager.total,
-      last_page: pager.last_page,
     };
     ResponseWrapper {
       code: SUCCESS_CODE,

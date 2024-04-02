@@ -34,6 +34,21 @@ impl RemoveImportInformation for AdminDTO {
     self
   }
 }
+
+impl AdminDTO {
+  pub fn to_response_admin_dto(&self, role_dto: RoleDTO, company_dto: CompanyDTO) -> AdminJoinDTO {
+    AdminJoinDTO {
+      id: self.id.clone(),
+      role: role_dto,
+      company: company_dto,
+      phone: self.phone.clone(),
+      username: self.username.clone(),
+      password: self.password.clone(),
+      avatar: self.avatar.clone(),
+      nickname: self.nickname.clone(),
+    }
+  }
+}
 #[derive(AsChangeset, Deserialize)]
 #[diesel(table_name = crate::schema::admin)]
 pub struct UpdateAdminDTO {
@@ -66,24 +81,10 @@ impl RemoveImportInformation for AdminJoinDTO {
   }
 }
 
-impl AdminDTO {
-  pub fn to_response_admin_dto(&self, role_dto: RoleDTO, company_dto: CompanyDTO) -> AdminJoinDTO {
-    AdminJoinDTO {
-      id: self.id.clone(),
-      role: role_dto,
-      company: company_dto,
-      phone: self.phone.clone(),
-      username: self.username.clone(),
-      password: self.password.clone(),
-      avatar: self.avatar.clone(),
-      nickname: self.nickname.clone(),
-    }
-  }
-}
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Clone)]
 pub struct AdminQueryPager {
   pub page: i64,
-  pub per_page: i64,
+  pub page_size: i64,
   pub username: Option<String>,
   pub nickname: Option<String>,
   pub phone: Option<String>,

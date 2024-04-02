@@ -176,7 +176,7 @@ diesel::table! {
         #[max_length = 20]
         username -> Varchar,
         #[max_length = 20]
-        phone -> Nullable<Varchar>,
+        phone -> Varchar,
     }
 }
 

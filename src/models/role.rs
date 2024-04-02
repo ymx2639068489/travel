@@ -2,7 +2,7 @@
 use diesel::prelude::*;
 use serde::{Serialize, Deserialize};
 
-#[derive(Queryable, Debug, Serialize, Deserialize, Insertable, Selectable)]
+#[derive(Queryable, Debug, Clone, Serialize, Deserialize, Insertable, Selectable)]
 #[diesel(table_name = crate::schema::role)]
 pub struct RoleDTO {
   pub id: String,

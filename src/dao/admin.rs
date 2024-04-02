@@ -1,11 +1,9 @@
 use crate::{
-  Paginate,
   models::{admin::*, company::*, role::*},
   schema::{admin, company, role}, ResponseList,
   utils::sql_response::diesel_to_res,
 };
 use diesel::{prelude::*, QueryResult};
-
 type Conn = diesel::MysqlConnection;
 
 pub fn query_admin_by_username(
@@ -15,8 +13,8 @@ pub fn query_admin_by_username(
   let (q_admin, q_role, q_company) = admin::table
     .inner_join(role::table)
     .inner_join(company::table)
-    .filter(admin::username.eq(target_username))
     .select((AdminDTO::as_select(), RoleDTO::as_select(), CompanyDTO::as_select()))
+    .filter(admin::username.eq(target_username))
     .first::<(AdminDTO, RoleDTO, CompanyDTO)>(conn)?;
   Ok(q_admin.to_response_admin_dto(q_role, q_company))
 }
@@ -24,29 +22,54 @@ pub fn query_admin_by_username(
 pub fn query_admin_list(
   conn: &mut Conn,
   pager: AdminQueryPager,
-) -> ResponseList<AdminDTO> {
+) -> QueryResult<ResponseList<AdminJoinDTO>> {
+  let offset = (pager.page - 1) * pager.page_size;
   use crate::schema::admin::dsl::*;
-  let mut sql = crate::schema::admin::table
-    .into_boxed();
-  if let Some(target_username) = pager.username {
-    println!("{}", target_username);
-    sql = sql.filter(username.like("%".to_owned() + &target_username + "%"));
-  }
-  if let Some(target_nickname) = pager.nickname {
-    println!("{}", target_nickname);
-    sql = sql.filter(nickname.like("%".to_owned() + &target_nickname + "%"));
-  }
-  if let Some(target_phone) = pager.phone {
-    sql = sql.filter(phone.like("%".to_owned() + &target_phone + "%"));
-  }
-  if let Some(target_company_id) = pager.company_id {
-    sql = sql.filter(company_id.eq(target_company_id));
-  }
-  sql
-    .page(Some(pager.page))
-    .per_page(Some(pager.per_page))
-    .paginate::<AdminDTO>(conn)
-    .unwrap()
+
+  let get_sql = |pager: AdminQueryPager| {
+    let mut sql = crate::schema::admin::table
+      .into_boxed()
+      .inner_join(role::table)
+      .inner_join(company::table)
+      .select((AdminDTO::as_select(), RoleDTO::as_select(), CompanyDTO::as_select()));
+  
+    if let Some(target_username) = pager.username {
+      sql = sql.filter(username.like(format!("%{}%", target_username)));
+    }
+    if let Some(target_nickname) = pager.nickname {
+      sql = sql.filter(nickname.like(format!("%{}%", target_nickname)));
+    }
+    if let Some(target_phone) = pager.phone {
+      sql = sql.filter(phone.like(format!("%{}%", target_phone)));
+    }
+    if let Some(target_company_id) = pager.company_id {
+      sql = sql.filter(company_id.eq(target_company_id));
+    }
+    sql
+  };
+
+  let list = get_sql(pager.clone())
+    .limit(pager.page_size)
+    .offset(offset)
+    .load::<(AdminDTO, RoleDTO, CompanyDTO)>(conn)?;
+
+  let count = get_sql(pager.clone())
+    .count()
+    .get_result(conn)
+    .expect("");
+
+  Ok(ResponseList {
+    page: pager.page,
+    page_size: pager.page_size,
+    total: count,
+    data: list
+      .iter()
+      .map(|(a, c, r)| a.to_response_admin_dto(
+        c.clone(),
+        r.clone(),
+      ))
+      .collect(),
+  })
 }
 
 pub fn query_admin_by_id(

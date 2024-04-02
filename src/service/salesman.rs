@@ -3,62 +3,40 @@
 use actix_web::web;
 use crate::{
   dao,
-  models::company::*
+  models::salesman::*,
+  ResponseList
 };
 
-pub async fn get_all_company<'a>(
+pub async fn get_salesman_list<'a>(
   pool: &web::Data<crate::DbPool>,
-) -> Result<Vec<CompanyDTO>, &'a str> {
+  pager: SalesmanQueryPager,
+) -> Result<ResponseList<JoinSalesmanDTO>, &'a str> {
   let mut conn = pool.get().unwrap();
   let res = web::block(move ||
-    dao::company::query_all_company(&mut conn)
+    dao::salesman::query_salesman_list(&mut conn, pager)
   ).await;
   match res {
     Err(e) => {
-      eprint!("{}", e);
+      eprintln!("{:?}", e);
       Err("数据库查询错误")
     },
     Ok(res) => match res {
-      Err(e) => {
-        eprint!("{}", e);
-        Err("数据库查询错误")
-      },
       Ok(list) => Ok(list),
-    }
-  }
-}
-
-pub async fn insert_one_company<'a>(
-  pool: &web::Data<crate::DbPool>,
-  company: CompanyDTO,
-) -> Result<(), &'a str> {
-  let mut conn = pool.get().unwrap();
-  let res = web::block(move || 
-    dao::company::add_company(&mut conn, &company)
-  ).await;
-
-  match res {
-    Err(e) => {
-      eprint!("{}", e);
-      Err("数据库错误")
-    },
-    Ok(res) => match res {
       Err(e) => {
-        eprint!("{}", e);
-        Err("数据库错误")
-      },
-      Ok(res) => if res { Ok(()) } else { Err("插入失败") },
+        eprintln!("{:?}", e);
+        Err("数据库查询错误")
+      }
     }
   }
 }
 
-pub async fn update_company<'a>(
+pub async fn update_salesman<'a>(
   pool: &web::Data<crate::DbPool>,
-  company: CompanyDTO
+  target_salesman: UpdateSalesmanDTO
 ) -> Result<(), &'a str> {
   let mut conn = pool.get().unwrap();
   let res = web::block(move || 
-    dao::company::update_company(&mut conn, &company)
+    dao::salesman::update_salesman(&mut conn, &target_salesman)
   ).await;
   match res {
     Err(e) => {
@@ -76,13 +54,36 @@ pub async fn update_company<'a>(
 }
 
 
-pub async fn delete_company<'a>(
+pub async fn delete_salesman<'a>(
   pool: &web::Data<crate::DbPool>,
-  target_company_id: String
+  target_salesman_id: i32,
 ) -> Result<(), &'a str> {
   let mut conn = pool.get().unwrap();
   let res = web::block(move || 
-    dao::company::delete_company(&mut conn, target_company_id)
+    dao::salesman::delete_one_salesman(&mut conn, target_salesman_id)
+  ).await;
+  match res {
+    Err(e) => {
+      eprint!("{}", e);
+      Err("数据库错误")
+    },
+    Ok(res) => match res {
+      Err(e) => {
+        eprint!("{}", e);
+        Err("数据库错误")
+      },
+      Ok(res) => if res { Ok(()) } else { Err("更新失败") },
+    }
+  }
+}
+
+pub async fn insert_salesman<'a>(
+  pool: &web::Data<crate::DbPool>,
+  target_salesman: AddSalesmanDTO,
+) -> Result<(), &'a str> {
+  let mut conn = pool.get().unwrap();
+  let res = web::block(move || 
+    dao::salesman::insert_one_salesman(&mut conn, &target_salesman)
   ).await;
   match res {
     Err(e) => {

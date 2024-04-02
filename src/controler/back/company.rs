@@ -1,11 +1,10 @@
 use actix_web::{
   get, post, web, Responder, Result as Res, delete
 };
-use serde::Deserialize;
 use verify_role::verify_permissions;
 
 use crate::{
-  models::company::*, service, DbPool, Response, JwtAdminData
+  models::{company::*, QueryUuid}, service, DbPool, JwtAdminData, Response
 };
 
 #[get("/get_all")]
@@ -34,14 +33,12 @@ async fn add_one(
     Err(e) => Response::server_error(e),
   })
 }
-#[derive(Debug, Deserialize)]
-pub struct CompanyId {
-  pub id: String,
-}
-#[delete("/insert")]
+
+
+#[delete("/delete")]
 #[verify_permissions(company, delete)]
 async fn delete_one_company(
-  company: web::Json<CompanyId>,
+  company: web::Json<QueryUuid>,
   pool: web::Data<DbPool>,
   jwt: JwtAdminData,
 ) -> Res<impl Responder> {
@@ -54,8 +51,6 @@ async fn delete_one_company(
     Err(e) => Response::server_error(e),
   })
 }
-
-
 
 pub fn init_routes(cfg: &mut web::ServiceConfig) {
   cfg
