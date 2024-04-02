@@ -1,9 +1,7 @@
 
 use diesel::{prelude::*, QueryResult};
 use crate::{
-  schema::custom::dsl::*,
-  models::user::*,
-  utils::sql_response::diesel_to_res,
+  models::user::*, schema::custom::dsl::*, utils::sql_response::diesel_to_res, ResponseList
 };
 type Conn = diesel::MysqlConnection;
 /**
@@ -25,8 +23,8 @@ pub fn query_user_by_id(conn: &mut Conn, user_id: &i32) -> QueryResult<UserDTO> 
 /**
  * 更新用户信息
  */
-pub fn update_profile(conn: &mut Conn, user_id: i32, target_user: &UpdateUserDTO) -> QueryResult<bool> {
-  let target = custom.filter(id.eq(user_id));
+pub fn update_profile(conn: &mut Conn, target_user: &UpdateUserDTO) -> QueryResult<bool> {
+  let target = custom.filter(id.eq(target_user.id));
   diesel_to_res(
     diesel::update(target)
       .set(target_user)
@@ -42,3 +40,49 @@ pub fn insert_user(coon: &mut Conn, user: &RegisterUserDTO) -> QueryResult<bool>
    .execute(coon))
 }
 
+
+/**
+ * 获取用户列表
+ */
+pub fn query_user_list(
+  conn: &mut Conn,
+  pager: UserQueryDTO
+) -> QueryResult<ResponseList<UserDTO>> {
+
+  let get_sql = |pager: UserQueryDTO| {
+    let mut sql = crate::schema::custom::table
+      .into_boxed();
+    if let Some(target_name) = pager.name {
+      sql = sql.filter(name.like(format!("%{}%", target_name)));
+    }
+    if let Some(target_phone) = pager.phone {
+      sql = sql.filter(phone.like(format!("%{}%", target_phone)));
+    }
+    if let Some(target_id_type) = pager.id_type {
+      sql = sql.filter(id_type.eq(target_id_type));
+    }
+    if let Some(target_id_number) = pager.id_number {
+      sql = sql.filter(id_number.like(format!("%{}%", target_id_number)));
+    }
+    if let Some(target_level) = pager.level {
+      sql = sql.filter(level.eq(target_level));
+    }
+    sql
+  };
+
+  let list = get_sql(pager.clone())
+    .limit(pager.page)
+    .offset((pager.page - 1) * pager.page_size)
+    .load::<UserDTO>(conn)?;
+  let total = get_sql(pager.clone())
+    .count()
+    .get_result(conn)
+    .expect("");
+
+  Ok(ResponseList {
+    data: list,
+    page: pager.page,
+    page_size: pager.page_size,
+    total,
+  })
+}

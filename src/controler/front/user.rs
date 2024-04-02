@@ -60,7 +60,7 @@ async fn update_profile(
   ud: JwtUserData
 ) -> Res<impl Responder> {
   // 防止非法
-  user.id = Some(ud.id);
+  user.id = ud.id;
   let res = service::user::update_user(&pool, user.into_inner())
     .await;
   Ok(match res {

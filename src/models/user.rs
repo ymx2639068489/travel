@@ -50,6 +50,16 @@ impl RemoveImportInformation for UserDTO {
   }
 }
 
+#[derive(Debug, Clone, Deserialize)]
+pub struct UserQueryDTO {
+  pub page: i64,
+  pub page_size: i64,
+  pub name: Option<String>,
+  pub phone: Option<String>,
+  pub id_type: Option<String>,
+  pub id_number: Option<String>,
+  pub level: Option<i32>,
+}
 
 #[derive(Deserialize, Debug)]
 pub struct LoginUserDTO {
@@ -70,7 +80,7 @@ pub struct RegisterUserDTO {
 #[derive(Deserialize, Debug, Identifiable, AsChangeset)]
 #[diesel(table_name= crate::schema::custom)]
 pub struct UpdateUserDTO {
-  pub id: Option<i32>,
+  pub id: i32,
   pub name: Option<String>,
   pub phone: Option<String>,
   pub password: Option<String>,

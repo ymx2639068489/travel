@@ -1,9 +1,7 @@
 use actix_web::web;
 
 use crate::{
-  models::user::*,
-  DbPool,
-  dao,
+  dao, models::user::*, DbPool, ResponseList
 };
 
 pub async fn query_user_by_phone<'a>(
@@ -78,6 +76,10 @@ pub async fn query_user_by_id<'a>(
   }
 }
 
+/**
+ * 在导入时识别数据添加客户
+ * 或在用户注册时使用
+ */
 pub async fn add_one_user<'a>(
   pool: &web::Data<DbPool>,
   user: RegisterUserDTO,
@@ -117,34 +119,60 @@ pub async fn add_one_user<'a>(
   }
 }
 
-
+/**
+ * 后台更新或用户更新
+ */
 pub async fn update_user<'a>(
   pool: &web::Data<DbPool>,
   user: UpdateUserDTO,
 ) -> Result<(), &'a str> {
   let mut conn = pool.get()
     .expect("couldn't get db connection");
-  if let Some(user_id) = user.id {
-    let res = web::block(move ||
-      dao::user::update_profile(&mut conn, user_id, &user)
-    ).await;
-    match res {
+  let res = web::block(move ||
+    dao::user::update_profile(&mut conn, &user)
+  ).await;
+  match res {
+    Err(e) => {
+      eprint!("{}", e);
+      Err("数据库错误")
+    },
+    Ok(res) => match res {
+      Ok(res) => match res {
+        true => Ok(()),
+        false => Err("更新失败"),
+      },
       Err(e) => {
         eprint!("{}", e);
         Err("数据库错误")
       },
-      Ok(res) => match res {
-        Ok(res) => match res {
-          true => Ok(()),
-          false => Err("更新失败"),
-        },
-        Err(e) => {
-          eprint!("{}", e);
-          Err("数据库错误")
-        },
-      }
     }
-  } else {
-    Err("id 为空")
   }
+}
+
+/**
+ * 后台获取用户列表
+ */
+pub async fn get_list<'a>(
+  pool: &web::Data<DbPool>,
+  pager: UserQueryDTO,
+) -> Result<ResponseList<UserDTO>, &'a str> {
+  let mut conn = pool.get().expect("");
+  let res = web::block(move ||
+    dao::user::query_user_list(&mut conn, pager)
+  ).await;
+
+  match res {
+    Err(e) => {
+      eprintln!("{:?}", e);
+      Err("数据库错误")
+    },
+    Ok(res) => match res {
+      Err(e) => {
+        eprintln!("{:?}", e);
+        Err("数据库错误")
+      },
+      Ok(res) => Ok(res),
+    }
+  }
+
 }
