@@ -53,21 +53,21 @@ pub fn query_product_list(
     sql
   };
 
-  let list = get_sql(pager.clone())
-    .limit(pager.page)
+  let list: Vec<ProductJoinDTO> = get_sql(pager.clone())
+    .limit(pager.page_size)
     .offset((pager.page - 1) * pager.page_size)
-    .load::<(ProductDTO, BaseProductDTO)>(conn)?;
+    .load::<(ProductDTO, BaseProductDTO)>(conn)?
+    .iter()
+    .map(|(p, b)| p.to_product_join_dto(b.clone()))
+    .collect();
   
   let total = get_sql(pager.clone())
     .count()
     .get_result(conn)
     .expect("");
+
   Ok(ResponseList{
-    data: list
-      .iter()
-      .map(|(p, b)| p.to_product_join_dto(b.clone()))
-      .collect()
-    ,
+    data: list,
     page: pager.page,
     page_size: pager.page_size,
     total,

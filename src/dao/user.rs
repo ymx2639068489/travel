@@ -71,7 +71,7 @@ pub fn query_user_list(
   };
 
   let list = get_sql(pager.clone())
-    .limit(pager.page)
+    .limit(pager.page_size)
     .offset((pager.page - 1) * pager.page_size)
     .load::<UserDTO>(conn)?;
   let total = get_sql(pager.clone())

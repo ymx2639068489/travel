@@ -30,6 +30,7 @@ async fn get_product(
         .iter()
         .map(|item| item.to_res_dto())
         .collect();
+      // println!("{:?}", list);
       Response::ok_pager(ResponseList {
         data: list,
         page,

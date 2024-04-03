@@ -32,7 +32,7 @@ pub fn query_all_base_product(
     .expect("");
 
   let list = get_sql(&pager)
-    .limit(pager.page)
+    .limit(pager.page_size)
     .offset((pager.page - 1) * pager.page_size)
     .load::<BaseProductDTO>(conn)?;
 

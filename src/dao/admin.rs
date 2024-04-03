@@ -23,7 +23,6 @@ pub fn query_admin_list(
   conn: &mut Conn,
   pager: AdminQueryPager,
 ) -> QueryResult<ResponseList<AdminJoinDTO>> {
-  let offset = (pager.page - 1) * pager.page_size;
   use crate::schema::admin::dsl::*;
 
   let get_sql = |pager: AdminQueryPager| {
@@ -50,7 +49,7 @@ pub fn query_admin_list(
 
   let list = get_sql(pager.clone())
     .limit(pager.page_size)
-    .offset(offset)
+    .offset((pager.page - 1) * pager.page_size)
     .load::<(AdminDTO, RoleDTO, CompanyDTO)>(conn)?;
 
   let count = get_sql(pager.clone())
