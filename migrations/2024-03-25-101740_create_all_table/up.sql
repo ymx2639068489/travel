@@ -151,7 +151,6 @@ create unique index IDU_base_product_name on base_product(name);
 create table  ledger
 (
        id                VARCHAR(36) not null,
-       product_id        VARCHAR(36) comment '产品id',
        product_name      VARCHAR(50) not null comment '产品名称',
        start_time        TIMESTAMP not null comment '产品开始时间',
        end_time          TIMESTAMP not null comment '产品结束时间',
@@ -166,7 +165,6 @@ create table  ledger
 ) comment '台账记录 由产品销售情况结算生成而来';
 alter  table ledger
        add constraint PK_ledger_id primary key (id);
-create index IDX_ledger_product_id on ledger(product_id);
 
 -- 分组26
 
@@ -197,9 +195,9 @@ alter  table operator
        add constraint FK_operator_admin_id foreign key (admin_id)
        references admin(id);
 
-alter  table product
+alter  table ledger
        add constraint FK_product_id foreign key (id)
-       references ledger(product_id);
+       references product(id);
 alter  table product
        add constraint FK_base_product_id foreign key (base_product_id)
        references base_product(id);

@@ -10,10 +10,10 @@ diesel::table! {
         company_id -> Nullable<Varchar>,
         #[max_length = 20]
         username -> Nullable<Varchar>,
-        #[max_length = 20]
-        phone -> Nullable<Varchar>,
         #[max_length = 100]
         password -> Varchar,
+        #[max_length = 20]
+        phone -> Varchar,
         #[max_length = 4000]
         avatar -> Nullable<Varchar>,
         #[max_length = 20]
@@ -62,7 +62,7 @@ diesel::table! {
 }
 
 diesel::table! {
-    sales_records (id) {
+    custom_salesman (id) {
         id -> Integer,
         custom_id -> Nullable<Integer>,
         salesman_id -> Nullable<Integer>,
@@ -86,8 +86,6 @@ diesel::table! {
     ledger (id) {
         #[max_length = 36]
         id -> Varchar,
-        #[max_length = 36]
-        product_id -> Nullable<Varchar>,
         #[max_length = 50]
         product_name -> Varchar,
         start_time -> Timestamp,
@@ -182,9 +180,10 @@ diesel::table! {
 
 diesel::joinable!(admin -> company (company_id));
 diesel::joinable!(admin -> role (role_id));
-diesel::joinable!(sales_records -> custom (custom_id));
-diesel::joinable!(sales_records -> product (product_id));
-diesel::joinable!(sales_records -> salesman (salesman_id));
+diesel::joinable!(custom_salesman -> custom (custom_id));
+diesel::joinable!(custom_salesman -> product (product_id));
+diesel::joinable!(custom_salesman -> salesman (salesman_id));
+diesel::joinable!(ledger -> product (id));
 diesel::joinable!(operator -> admin (admin_id));
 diesel::joinable!(product -> base_product (base_product_id));
 diesel::joinable!(salesman -> company (company_id));
@@ -194,7 +193,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     base_product,
     company,
     custom,
-    sales_records,
+    custom_salesman,
     ledger,
     operator,
     product,

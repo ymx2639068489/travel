@@ -1,15 +1,84 @@
+
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use bigdecimal::BigDecimal;
 
-#[derive(Clone, Debug, Queryable, Insertable)]
-#[diesel(table_name = crate::schema::product)]
+use crate::utils::*;
 
+use super::base_product::BaseProductDTO;
+
+#[derive(Clone, Debug, Queryable, Insertable, Selectable)]
+#[diesel(table_name = crate::schema::product)]
+#[diesel(belongs_to(crate::schema::base_product::dsl::base_product, foreign_key = base_product_id))]
 pub struct ProductDTO {
   pub id: String,
   pub base_product_id: Option<String>,
   pub create_at: chrono::NaiveDateTime,
   pub price: Option<BigDecimal>,
+  pub start_time: chrono::NaiveDateTime,
+  pub end_time: chrono::NaiveDateTime,
+  pub people_number: i32,
+  pub duration: i32,
+  pub product_type: String,
+  pub notes: Option<String>,
+}
+impl ProductDTO {
+  pub fn to_product_join_dto(&self, base_product: BaseProductDTO) -> ProductJoinDTO {
+    ProductJoinDTO {
+      id: self.id.clone(),
+      base_product,
+      create_at: self.create_at,
+      price: self.price.clone(),
+      start_time: self.start_time,
+      end_time: self.end_time,
+      people_number: self.people_number,
+      duration: self.duration,
+      product_type: self.product_type.clone(),
+      notes: self.notes.clone(),
+    }
+  }
+}
+#[derive(Clone, Debug)]
+pub struct ProductJoinDTO {
+  pub id: String,
+  pub base_product: BaseProductDTO,
+  pub create_at: chrono::NaiveDateTime,
+  pub price: Option<BigDecimal>,
+  pub start_time: chrono::NaiveDateTime,
+  pub end_time: chrono::NaiveDateTime,
+  pub people_number: i32,
+  pub duration: i32,
+  pub product_type: String,
+  pub notes: Option<String>,
+}
+
+impl ProductJoinDTO {
+  pub fn to_res_dto(&self) -> ResProductJoinDTO {
+    let mut res : String = String::from("0");
+    if let Some(price) = &self.price {
+      res = price.to_engineering_notation();
+    }
+    ResProductJoinDTO {
+      id: self.id.clone(),
+      base_product: self.base_product.clone(),
+      create_at: self.create_at,
+      price: Some(res),
+      start_time: self.start_time,
+      end_time: self.end_time,
+      people_number: self.people_number,
+      duration: self.duration,
+      product_type: self.product_type.clone(),
+      notes: self.notes.clone(),
+    }
+  }
+}
+
+#[derive(Debug, Clone, Serialize)]
+pub struct ResProductJoinDTO {
+  pub id: String,
+  pub base_product: BaseProductDTO,
+  pub create_at: chrono::NaiveDateTime,
+  pub price: Option<String>,
   pub start_time: chrono::NaiveDateTime,
   pub end_time: chrono::NaiveDateTime,
   pub people_number: i32,
@@ -118,12 +187,10 @@ pub struct ProductQueryDTO {
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct AddProductDTO {
-  pub id: String,
   pub base_product_id: String,
-  pub create_at: chrono::NaiveDateTime,
   pub price: String,
-  pub start_time: chrono::NaiveDateTime,
-  pub end_time: chrono::NaiveDateTime,
+  pub start_time: String,
+  pub end_time: String,
   pub people_number: i32,
   pub duration: i32,
   pub product_type: String,
@@ -132,12 +199,12 @@ pub struct AddProductDTO {
 impl AddProductDTO {
   pub fn to_product_dto(self) -> ProductDTO {
     ProductDTO {
-      id: self.id,
+      id: uuid::Uuid::new_v4().to_string(),
       base_product_id: Some(self.base_product_id),
-      create_at: self.create_at,
+      create_at: crate::utils::now_to_naive_date_time(),
       price: Some(self.price.parse().unwrap()),
-      start_time: self.start_time,
-      end_time: self.end_time,
+      start_time: str_to_naive_date_time(&self.start_time),
+      end_time: str_to_naive_date_time(&self.end_time),
       people_number: self.people_number,
       duration: self.duration,
       product_type: self.product_type,

@@ -6,7 +6,7 @@ use crate::{models::product::*, ResponseList, dao};
 pub async fn get_prudoct_list<'a>(
   pool: &web::Data<crate::DbPool>,
   pager: ProductQueryDTO,
-) -> Result<ResponseList<ProductDTO>, &'a str> {
+) -> Result<ResponseList<ProductJoinDTO>, &'a str> {
   let mut conn = pool.get().unwrap();
   let res = web::block(move ||
     dao::product::query_product_list(&mut conn, pager)

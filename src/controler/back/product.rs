@@ -77,8 +77,8 @@ async fn add_one_product(
     product_dto.into_inner(),
   ).await;
   Ok(match res {
-    Ok(_) => Response::ok("", "更新成功"),
-    Err(_) => Response::server_error("更新失败"),
+    Ok(_) => Response::ok("", "添加成功"),
+    Err(_) => Response::server_error("添加失败"),
   })
 }
 

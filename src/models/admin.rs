@@ -22,7 +22,7 @@ pub struct AdminDTO {
   pub role_id: Option<String>,
   pub company_id: Option<String>,
   pub username: Option<String>,
-  pub phone: Option<String>,
+  pub phone: String,
   pub password: String,
   pub avatar: Option<String>,
   pub nickname: Option<String>,
@@ -67,7 +67,7 @@ pub struct AdminJoinDTO {
   pub id: String,
   pub role: RoleDTO,
   pub company: CompanyDTO,
-  pub phone: Option<String>,
+  pub phone: String,
   pub username: Option<String>,
   pub password: String,
   pub avatar: Option<String>,
@@ -109,7 +109,7 @@ impl AddAdminDTO {
       role_id: Some(self.role_id.clone()),
       company_id: Some(self.company_id.clone()),
       username: Some(self.username.clone()),
-      phone: Some(self.phone.clone()),
+      phone: self.phone.clone(),
       nickname: Some(self.nickname.clone()),
     }
   }

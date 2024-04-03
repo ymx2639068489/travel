@@ -8,6 +8,7 @@ type Conn = diesel::MysqlConnection;
 
 use crate::{
   models::product::{*},
+  models::base_product::BaseProductDTO,
   utils::sql_response::diesel_to_res,
   ResponseList,
   schema::product::dsl::*,
@@ -16,10 +17,12 @@ use crate::{
 pub fn query_product_list(
   conn: &mut Conn,
   pager: ProductQueryDTO,
-) -> QueryResult<ResponseList<ProductDTO>> {
+) -> QueryResult<ResponseList<ProductJoinDTO>> {
   let get_sql = |pager: ProductQueryDTO| {
     let mut sql = crate::schema::product::table
-      .into_boxed();
+      .into_boxed()
+      .inner_join(crate::schema::base_product::table)
+      .select((ProductDTO::as_select(), BaseProductDTO::as_select()));
     if let Some(target_base_product_id) = pager.base_product_id {
       sql = sql.filter(base_product_id.eq(target_base_product_id));
     }
@@ -53,14 +56,18 @@ pub fn query_product_list(
   let list = get_sql(pager.clone())
     .limit(pager.page)
     .offset((pager.page - 1) * pager.page_size)
-    .load::<ProductDTO>(conn)?;
+    .load::<(ProductDTO, BaseProductDTO)>(conn)?;
   
   let total = get_sql(pager.clone())
     .count()
     .get_result(conn)
     .expect("");
   Ok(ResponseList{
-    data: list,
+    data: list
+      .iter()
+      .map(|(p, b)| p.to_product_join_dto(b.clone()))
+      .collect()
+    ,
     page: pager.page,
     page_size: pager.page_size,
     total,
