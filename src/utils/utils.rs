@@ -1,7 +1,10 @@
 use chrono::Datelike;
 use chrono::Timelike;
 
-
+/**
+ * 隐藏身份证中间的详细信息
+ * 数据脱敏
+ */
 pub fn hide_id_number(id_number: String) -> String {
   let len = id_number.len();
   let mut id = id_number.clone();
@@ -11,7 +14,9 @@ pub fn hide_id_number(id_number: String) -> String {
 }
 
 
-
+/**
+ * 获取当前时间，并以NaiveDateTim格式返回
+ */
 pub fn now_to_naive_date_time() -> chrono::NaiveDateTime {
   let now = chrono::Local::now();
   let d = chrono::NaiveDate::from_ymd_opt(
@@ -44,5 +49,4 @@ pub fn str_to_naive_date_time(str: &str) -> chrono::NaiveDateTime {
       now_to_naive_date_time()
     }
   }
-    
 }

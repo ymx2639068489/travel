@@ -2,6 +2,29 @@ use actix_web::web;
 
 use crate::{models::product::*, ResponseList, dao};
 
+pub async fn front_get_product_list<'a>(
+  pool: &web::Data<crate::DbPool>,
+  pager: FrontProductQueryDTO,
+) -> Result<ResponseList<ProductJoinDTO>, &'a str> {
+let mut conn = pool.get().unwrap();
+let res = web::block(move ||
+  dao::product::front_query_product_list(&mut conn, pager)
+).await;
+
+match res {
+  Err(e) => {
+    eprint!("{}", e);
+    Err("数据库查询错误")
+  },
+  Ok(res) => match res {
+    Ok(res) => Ok(res),
+    Err(e) => {
+      eprint!("{}", e);
+      Err("查询错误")
+    }
+  }
+}
+}
 
 pub async fn get_prudoct_list<'a>(
   pool: &web::Data<crate::DbPool>,

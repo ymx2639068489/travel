@@ -1,12 +1,13 @@
 
 
-use diesel::{prelude::Insertable, Queryable, Identifiable, AsChangeset};
+use diesel::{prelude::Insertable, AsChangeset, Identifiable, Queryable, Selectable};
 use serde::{Serialize, Deserialize};
 
 use super::RemoveImportInformation;
 
 // 完整的结构体
-#[derive(Queryable, Debug, Serialize, Clone)]
+#[derive(Queryable, Debug, Serialize, Clone, Selectable)]
+#[diesel(table_name = crate::schema::custom)]
 pub struct UserDTO {
   pub id: i32,
   pub name: String,

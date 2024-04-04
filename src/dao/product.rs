@@ -14,6 +14,41 @@ use crate::{
   schema::product::dsl::*,
 };
 
+pub fn front_query_product_list(
+  conn: &mut Conn,
+  pager: FrontProductQueryDTO,
+) -> QueryResult<ResponseList<ProductJoinDTO>> {
+  let get_sql = |pager: FrontProductQueryDTO| {
+    let mut sql = crate::schema::product::table
+      .into_boxed()
+      .inner_join(crate::schema::base_product::table)
+      .select((ProductDTO::as_select(), BaseProductDTO::as_select()));
+    if let Some(target_product_type) = pager.product_type {
+      sql = sql.filter(product_type.like(format!("%{}%",target_product_type)));
+    }
+    sql
+  };
+  let list: Vec<ProductJoinDTO> = get_sql(pager.clone())
+    .limit(pager.page_size)
+    .offset((pager.page - 1) * pager.page_size)
+    .load::<(ProductDTO, BaseProductDTO)>(conn)?
+    .iter()
+    .map(|(p, b)| p.to_product_join_dto(b.clone()))
+    .collect();
+  
+  let total = get_sql(pager.clone())
+    .count()
+    .get_result(conn)
+    .expect("");
+
+  Ok(ResponseList{
+    data: list,
+    page: pager.page,
+    page_size: pager.page_size,
+    total,
+  })
+}
+
 pub fn query_product_list(
   conn: &mut Conn,
   pager: ProductQueryDTO,

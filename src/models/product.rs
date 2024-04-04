@@ -38,6 +38,7 @@ impl ProductDTO {
     }
   }
 }
+
 #[derive(Clone, Debug)]
 pub struct ProductJoinDTO {
   pub id: String,
@@ -51,13 +52,13 @@ pub struct ProductJoinDTO {
   pub product_type: String,
   pub notes: Option<String>,
 }
-
 impl ProductJoinDTO {
   pub fn to_res_dto(&self) -> ResProductJoinDTO {
-    let mut res : String = String::from("0");
-    if let Some(price) = &self.price {
-      res = price.to_engineering_notation();
-    }
+    let res : String = if let Some(price) = &self.price {
+      price.to_string()
+    } else {
+      String::from("0")
+    };
     ResProductJoinDTO {
       id: self.id.clone(),
       base_product: self.base_product.clone(),
@@ -103,10 +104,11 @@ pub struct ResProductDTO {
 
 impl ProductDTO {
   pub fn to_res_dto(&self) -> ResProductDTO {
-    let mut res : String = String::from("0");
-    if let Some(price) = &self.price {
-      res = price.to_engineering_notation();
-    }
+    let res : String = if let Some(price) = &self.price {
+      price.to_string()
+    } else {
+      String::from("0")
+    };
     ResProductDTO {
       id: self.id.clone(),
       base_product_id: self.base_product_id.clone(),
@@ -183,6 +185,14 @@ pub struct ProductQueryDTO {
   // 产品类型
   pub product_type: Option<String>,
   pub notes: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct FrontProductQueryDTO {
+  pub page: i64,
+  pub page_size: i64,
+  // 产品类型
+  pub product_type: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
