@@ -145,3 +145,21 @@ pub fn delete_product(
      .execute(conn)
   )
 }
+
+
+/**
+ * id_list: String[]
+ * 传入一个id数组，查询对应的产品
+ * 用于批量导入时的查询
+ */
+pub fn query_by_id_list(
+  conn: &mut Conn,
+  id_list: Vec<String>
+) -> QueryResult<Vec<(String, Option<String>)>> {
+  product
+    .inner_join(crate::schema::base_product::table)
+    .select((id, crate::schema::base_product::columns::name))
+    .filter(id.eq_any(id_list))
+    .load::<(String, Option<String>)>(conn)
+}
+

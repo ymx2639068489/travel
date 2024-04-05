@@ -77,14 +77,15 @@ create table  custom
 ) comment '客户';
 create unique index IDU_custom_phone on custom(phone);
 
--- custom_salesman
-create table  custom_salesman
+-- order
+create table  order
 (
        id                INT primary key auto_increment not null comment '系统内部id',
        custom_id         INT comment '客户_编号',
        salesman_id       INT comment '销售员_编号',
        product_id        VARCHAR(36) comment '产品_编号',
        create_at         TIMESTAMP not null comment '创建时间',
+       order_time        TIMESTAMP not null comment '订单时间，默认创建时间，若销售员推销，则需要填写',
        company           VARCHAR(20) not null comment '所属公司 销售员调到其他公司后，该记录应该属于是公司的',
        order_id          VARCHAR(30) not null comment '订单号 公司内部负责',
        pay_method        VARCHAR(30) not null comment '支付方式',
@@ -181,13 +182,13 @@ alter  table salesman
        add constraint FK_salesman_company_id foreign key (company_id)
        references company(id);
 
-alter  table custom_salesman
+alter  table order
        add constraint FK_custom_man_custom_id179D foreign key (custom_id)
        references custom(id);
-alter  table custom_salesman
+alter  table order
        add constraint FK_custom_man_salesma_id3D2F foreign key (salesman_id)
        references salesman(id);
-alter  table custom_salesman
+alter  table order
        add constraint FK_custom_man_product_id9D56 foreign key (product_id)
        references product(id);
 

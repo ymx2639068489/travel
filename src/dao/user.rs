@@ -36,11 +36,17 @@ pub fn update_profile(conn: &mut Conn, target_user: &UpdateUserDTO) -> QueryResu
  */
 pub fn insert_user(coon: &mut Conn, user: &RegisterUserDTO) -> QueryResult<bool> {
   diesel_to_res(diesel::insert_into(custom)
-   .values(user)
-   .execute(coon))
+    .values(user)
+    .execute(coon))
 }
-
-
+/**
+ * 新增一组用户，若冲突则忽略（通过手机号排查）
+ */
+pub fn insert_custom_list(coon: &mut Conn, user_list: Vec<RegisterUserDTO>) -> QueryResult<bool> {
+  diesel_to_res(diesel::insert_or_ignore_into(custom)
+    .values(user_list)
+    .execute(coon))
+}
 /**
  * 获取用户列表
  */
@@ -85,4 +91,18 @@ pub fn query_user_list(
     page_size: pager.page_size,
     total,
   })
+}
+
+
+/**
+ * 传入一组手机号，查询出对应的所有用户id和手机号
+ */
+pub fn query_custom_id_and_phone_by_phone(
+  conn: &mut Conn,
+  phone_list: Vec<String>
+) -> QueryResult<Vec<(i32, Option<String>, Option<String>)>> {
+  custom
+    .select((id, phone, id_number))
+    .filter(phone.like(format!("%{}%", phone_list.join("|"))))
+    .load::<(i32, Option<String>, Option<String>)>(conn)
 }

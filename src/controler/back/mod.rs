@@ -7,6 +7,7 @@ mod base_product;
 mod product;
 mod salesman;
 mod custom;
+mod order;
 pub fn init_routes(cfg: &mut web::ServiceConfig) {
   cfg
     .service(web::scope("/admin").configure(admin::init_routes))
@@ -16,6 +17,6 @@ pub fn init_routes(cfg: &mut web::ServiceConfig) {
     .service(web::scope("/product").configure(product::init_routes))
     .service(web::scope("/salesman").configure(salesman::init_routes))
     .service(web::scope("/custom").configure(custom::init_routes))
-    
+    .service(web::scope("/order").configure(order::init_routes))
   ;
 }

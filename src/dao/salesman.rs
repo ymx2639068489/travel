@@ -91,3 +91,16 @@ pub fn delete_one_salesman(
       .execute(conn)
   )
 }
+/**
+ * 传入一组手机号，查询对应所有销售员
+ */
+pub fn query_salesman_list_by_phone(
+  conn: &mut Conn,
+  phone_list: Vec<String>
+) -> QueryResult<Vec<(i32, String, String, Option<String>)>> {
+  salesman
+    .inner_join(crate::schema::company::table)
+    .select((id, username, phone, crate::schema::company::columns::name))
+    .filter(phone.like(format!("%{}%", phone_list.join("|"))))
+    .load::<(i32, String, String, Option<String>)>(conn)
+}

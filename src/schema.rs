@@ -62,13 +62,14 @@ diesel::table! {
 }
 
 diesel::table! {
-    custom_salesman (id) {
+    order (id) {
         id -> Integer,
         custom_id -> Nullable<Integer>,
         salesman_id -> Nullable<Integer>,
         #[max_length = 36]
         product_id -> Nullable<Varchar>,
         create_at -> Timestamp,
+        order_time -> Timestamp,
         #[max_length = 20]
         company -> Varchar,
         #[max_length = 30]
@@ -180,9 +181,9 @@ diesel::table! {
 
 diesel::joinable!(admin -> company (company_id));
 diesel::joinable!(admin -> role (role_id));
-diesel::joinable!(custom_salesman -> custom (custom_id));
-diesel::joinable!(custom_salesman -> product (product_id));
-diesel::joinable!(custom_salesman -> salesman (salesman_id));
+diesel::joinable!(order -> custom (custom_id));
+diesel::joinable!(order -> product (product_id));
+diesel::joinable!(order -> salesman (salesman_id));
 diesel::joinable!(ledger -> product (id));
 diesel::joinable!(operator -> admin (admin_id));
 diesel::joinable!(product -> base_product (base_product_id));
@@ -193,7 +194,7 @@ diesel::allow_tables_to_appear_in_same_query!(
     base_product,
     company,
     custom,
-    custom_salesman,
+    order,
     ledger,
     operator,
     product,

@@ -5,3 +5,4 @@ pub mod company;
 pub mod base_product;
 pub mod product;
 pub mod salesman;
+pub mod order;
