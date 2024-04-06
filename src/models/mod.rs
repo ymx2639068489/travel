@@ -6,6 +6,7 @@ pub mod base_product;
 pub mod product;
 pub mod salesman;
 pub mod order;
+pub mod ledger;
 mod response;
 mod paginated;
 use serde::Deserialize;
@@ -15,6 +16,7 @@ pub use paginated::{
   ResponseList,
   QueryPager,
 };
+
 #[derive(Debug, Deserialize)]
 pub struct QueryUuid {
   pub id: String,

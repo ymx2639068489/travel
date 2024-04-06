@@ -125,6 +125,7 @@ create table  product
        start_time        TIMESTAMP not null comment '开始时间',
        end_time          TIMESTAMP not null comment '结束时间',
        people_number     INT not null comment '人数 一次最多几个人',
+       surplus           INT not null comment '产品剩余数量, 最开始与people_number一致',
        duration          INT not null comment '团期',
        product_type      VARCHAR(20) not null comment '销售类型 研学游、避暑游、直通车、主题游、夏令营、冬令营、代理服务、其他',
        notes             VARCHAR(500) comment '备注'

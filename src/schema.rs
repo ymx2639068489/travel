@@ -138,6 +138,7 @@ diesel::table! {
         start_time -> Timestamp,
         end_time -> Timestamp,
         people_number -> Integer,
+        surplus -> Integer,
         duration -> Integer,
         #[max_length = 20]
         product_type -> Varchar,

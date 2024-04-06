@@ -1,9 +1,9 @@
 use std::collections::HashMap;
 
 use actix_web::web;
-// use futures::future::join_all;
+
 use crate::{
-  dao, models::{order::*, user::{RegisterUserDTO, UserDTO}}, DbPool, ResponseList
+  dao, models::{order::*, user::RegisterUserDTO}, DbPool, ResponseList
 };
 
 pub async fn get_list<'a>(
@@ -59,7 +59,6 @@ pub async fn get_total_number<'a>(
     }
   }
 }
-
 
 pub async fn insert_order<'a>(
   pool: &web::Data<DbPool>,
@@ -211,7 +210,7 @@ pub async fn insert_order<'a>(
   }
   // 4. 合理的插入到数据库中，不合理的数据返回
   let mut conn = pool.get().expect("");
-  web::block(move || dao::order::insert_order_list(&mut conn, ok_list)).await;
+  let _ = web::block(move || dao::order::insert_order_list(&mut conn, ok_list)).await;
   // 5. 返回不合理数据
   Ok(err_list)
 }

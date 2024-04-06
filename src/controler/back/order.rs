@@ -77,42 +77,6 @@ async fn upload_order(
     Err(e) => Response::client_error(e),
   })
 }
-/**
- * 更新产品
- */
-// #[put("/update")]
-// #[verify_permissions(product, update)]
-// async fn update_product(
-//   pool: web::Data<DbPool>,
-//   jwt: JwtAdminData,
-//   update_product_dto: web::Json<ReqUpdateProductDTO>,
-// ) -> Res<impl Responder> {
-//   let res = service::product::update_product(
-//     &pool,
-//     update_product_dto.to_update_product_dto(),
-//   ).await;
-//   Ok(match res {
-//     Ok(_) => Response::ok("", "更新成功"),
-//     Err(_) => Response::server_error("更新失败"),
-//   })
-// }
-
-// #[delete("/delete")]
-// #[verify_permissions(product, delete)]
-// async fn delete_product(
-//   pool: web::Data<DbPool>,
-//   jwt: JwtAdminData,
-//   target: web::Query<QueryUuid>,
-// ) -> Res<impl Responder> {
-//   let res = service::product::delete_product(
-//     &pool,
-//     target.id.clone(),
-//   ).await;
-//   Ok(match res {
-//     Ok(_) => Response::ok("", "删除成功"),
-//     Err(e) => Response::server_error(e),
-//   })
-// }
 
 pub fn init_routes(cfg: &mut web::ServiceConfig) {
   cfg

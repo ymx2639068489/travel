@@ -1,5 +1,5 @@
 
-use actix_web::{get, post, web, Responder, Result as Res};
+use actix_web::{get, web, Responder, Result as Res};
 use crate::{
   models::product::*,
   service, DbPool, JwtUserData, Response, ResponseList

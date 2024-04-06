@@ -190,3 +190,14 @@ pub fn insert_order_list(
    .values(target_order)
    .execute(conn))
 }
+
+// /**
+//  * 事务消费产品，生成订单记录
+//  */
+// pub fn insert_order(
+//   conn: &mut Conn,
+//   target_order: AddOrderDTO,
+// ) -> QueryResult<bool> {
+//   // diesel::
+//   // conn.transaction(f)
+// }
