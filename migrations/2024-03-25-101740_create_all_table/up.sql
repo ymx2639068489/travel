@@ -87,7 +87,7 @@ create table  order
        create_at         TIMESTAMP not null comment '创建时间',
        order_time        TIMESTAMP not null comment '订单时间，默认创建时间，若销售员推销，则需要填写',
        company           VARCHAR(20) not null comment '所属公司 销售员调到其他公司后，该记录应该属于是公司的',
-       order_id          VARCHAR(30) not null comment '订单号 公司内部负责',
+       order_id          VARCHAR(36) not null comment '订单号 公司内部负责',
        pay_method        VARCHAR(30) not null comment '支付方式',
        money             decimal not null comment '支付金额 decimal',
        people_number     INT not null comment '人数',

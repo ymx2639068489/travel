@@ -142,19 +142,6 @@ pub struct OrderQueryPager {
   pub end_time_r: Option<chrono::NaiveDateTime>,
 }
 
-pub struct ReqBuyProductDTO {
-  // pub custom_id: Option<i32>,
-  // pub salesmn_id: Option<i32>, 用户端默认系统售出
-  pub product_id: String,
-  // pub company: String, 用户端默认系统售出
-  // pub order_id: String, 自动生成
-  // pub pay_method: String, 网页端支付
-  pub money: String,
-  pub people_number: i32, // 购买份数
-  // pub rebate: Option<String>, 系统售出没有返利
-}
-
-
 /**
  * 添加销售记录
  */
@@ -227,8 +214,35 @@ impl ReqAddOrderDTO {
     }
   }
 }
-// impl ReqBuyProductDTO {
-//   pub fn to_buy_product_dto(&self) -> BuyProductDTO {
-//     BuyProductDTO {}
-//   }
-// }
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct ReqBuyProductDTO {
+  pub custom_id: Option<i32>,
+  // pub salesmn_id: Option<i32>, 用户端默认系统售出
+  pub product_id: String,
+  // pub company: String, 用户端默认系统售出
+  // pub order_id: String, 自动生成
+  // pub pay_method: String, 网页端支付
+  pub money: String,
+  pub people_number: i32, // 购买份数
+  // pub rebate: Option<String>, 系统售出没有返利
+}
+impl ReqBuyProductDTO {
+  pub fn to_buy_product_dto(&self) -> AddOrderDTO {
+    AddOrderDTO {
+      custom_id: self.custom_id.clone(),
+      // 默认系统售出，id为1
+      salesman_id: Some(1),
+      product_id: Some(self.product_id.clone()),
+      create_at: crate::utils::now_to_naive_date_time(),
+      order_time: crate::utils::now_to_naive_date_time(),
+      // 系统所属公司
+      company: String::from("764a3f66-bbc5-42c3-8a90-24a6d5e284cf"),
+      order_id: uuid::Uuid::new_v4().to_string(),
+      pay_method: String::from("系统售出支付"),
+      money: self.money.parse::<BigDecimal>().unwrap(),
+      people_number: self.people_number,
+      rebate: Some(String::from("0")),
+    }
+  }
+}

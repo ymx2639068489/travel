@@ -1,7 +1,9 @@
 use actix_web::web;
 
 use crate::{models::product::*, ResponseList, dao};
-
+/**
+ * 用户端获取产品列表
+ */
 pub async fn front_get_product_list<'a>(
   pool: &web::Data<crate::DbPool>,
   pager: FrontProductQueryDTO,
@@ -25,7 +27,9 @@ match res {
   }
 }
 }
-
+/**
+ * 后台获取产品列表
+ */
 pub async fn get_prudoct_list<'a>(
   pool: &web::Data<crate::DbPool>,
   pager: ProductQueryDTO,
@@ -49,7 +53,9 @@ pub async fn get_prudoct_list<'a>(
     }
   }
 }
-
+/**
+ * 更新产品
+ */
 pub async fn update_product<'a>(
   pool: &web::Data<crate::DbPool>,
   target_product: UpdateProductDTO,
@@ -76,7 +82,9 @@ pub async fn update_product<'a>(
     }
   }
 }
-
+/**
+ * 添加一个产品
+ */
 pub async fn add_one_product<'a>(
   pool: &web::Data<crate::DbPool>,
   target_product: AddProductDTO,
@@ -105,7 +113,9 @@ pub async fn add_one_product<'a>(
     }
   }
 }
-
+/**
+ * 删除一个产品
+ */
 pub async fn delete_product<'a>(
   pool: &web::Data<crate::DbPool>,
   id: String,

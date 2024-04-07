@@ -72,7 +72,7 @@ diesel::table! {
         order_time -> Timestamp,
         #[max_length = 20]
         company -> Varchar,
-        #[max_length = 30]
+        #[max_length = 36]
         order_id -> Varchar,
         #[max_length = 30]
         pay_method -> Varchar,

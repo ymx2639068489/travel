@@ -1,10 +1,9 @@
 
-use actix_web::{get, web, Responder, Result as Res};
+use actix_web::{get, post, web, Responder, Result as Res};
 use crate::{
-  models::product::*,
+  models::{order::ReqBuyProductDTO, product::*},
   service, DbPool, JwtUserData, Response, ResponseList
 };
-// 3140443682
 #[get("/get_list")]
 async fn get_list(
   _: JwtUserData,
@@ -34,14 +33,22 @@ async fn get_list(
   })
 }
 
-// #[post("/buy_product")]
-// async fn buy_product(
-//   _: JwtUserData,
-//   pool: web::Data<DbPool>,
-//   dto: web::Json<BuyProductDTO>,
-// ) {
+#[post("/buy_product")]
+async fn buy_product(
+  _: JwtUserData,
+  pool: web::Data<DbPool>,
+  dto: web::Json<ReqBuyProductDTO>,
+) -> Res<impl Responder> {
+  let res = service::order::consumer_product(
+    pool,
+    dto.to_buy_product_dto(),
+  ).await;
 
-// }
+  Ok(match res {
+    Ok(_) => Response::ok("", "购买成功"),
+    Err(e) => Response::client_error(e),
+  })
+}
 
 pub fn init_routes(cfg: &mut web::ServiceConfig) {
   cfg

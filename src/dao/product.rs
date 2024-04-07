@@ -7,11 +7,7 @@ use diesel::{
 type Conn = diesel::MysqlConnection;
 
 use crate::{
-  models::product::{*},
-  models::base_product::BaseProductDTO,
-  utils::sql_response::diesel_to_res,
-  ResponseList,
-  schema::product::dsl::*,
+  models::{base_product::BaseProductDTO, order::AddOrderDTO, product::*}, schema::product::dsl::*, utils::sql_response::diesel_to_res, ResponseList
 };
 
 pub fn front_query_product_list(
@@ -146,7 +142,6 @@ pub fn delete_product(
   )
 }
 
-
 /**
  * id_list: String[]
  * 传入一个id数组，查询对应的产品
@@ -163,3 +158,44 @@ pub fn query_by_id_list(
     .load::<(String, Option<String>)>(conn)
 }
 
+/**
+ * 传入产品id，查询产品
+ */
+pub fn query_product_by_id(
+  conn: &mut Conn,
+  target_product_id: String,
+) -> QueryResult<ProductJoinDTO> {
+  let res: (ProductDTO, BaseProductDTO) = product
+    .inner_join(crate::schema::base_product::table)
+    .select((ProductDTO::as_select(), BaseProductDTO::as_select()))
+    .filter(id.eq(target_product_id))
+    .first::<(ProductDTO, BaseProductDTO)>(conn)?;
+  Ok(res.0.to_product_join_dto(res.1))
+}
+
+/**
+ * 消费产品，生成销售记录
+ * order的添加与产品的剩余数量删除需要一起运行->事务
+ */
+pub fn consumer_product_to_order(
+  pool: &actix_web::web::Data<crate::DbPool>,
+  target_order: AddOrderDTO,
+) -> QueryResult<bool> {
+  // let conn1 = conn.clone();
+  let res = pool.get().expect("").transaction::<_, diesel::result::Error, _>(|_| {
+    let target_product = product.filter(id.eq(target_order.product_id.clone().unwrap()));
+    let _ = diesel::update(target_product)
+      .set(surplus.eq(surplus - 1))
+      .execute(&mut pool.get().expect(""));
+
+    let _ = super::order::insert_order_list(
+      &mut pool.get().expect(""),
+      vec![target_order]
+    );
+    Ok(())
+  });
+  match res {
+    Ok(_) => Ok(true),
+    Err(_) => Ok(false),
+  }
+}

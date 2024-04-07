@@ -6,7 +6,9 @@ use crate::{
 };
 use diesel::{prelude::*, QueryResult};
 type Conn = diesel::MysqlConnection;
-
+/**
+ * 添加一个台账记录
+ */
 pub fn add_one_ledger(
   conn: &mut Conn,
   target_ledger: LedgerDTO,
@@ -16,11 +18,13 @@ pub fn add_one_ledger(
     .execute(conn)
   )
 }
-
-pub fn get_ledger_list(
+/**
+ * 获取台账记录，分页
+ */
+pub fn query_ledger_list(
   conn: &mut Conn,
   pager: LedgerQueryPager,
-) -> QueryResult<ResponseList<ResLedgerDTO>> {
+) -> QueryResult<ResponseList<LedgerDTO>> {
   let get_sql = |pager: LedgerQueryPager| {
     let mut sql = crate::schema::ledger::table
       .into_boxed();
@@ -28,7 +32,33 @@ pub fn get_ledger_list(
     if let Some(target_product_name) = pager.product_name {
       sql = sql.filter(product_name.like(format!("%{}%", target_product_name)));
     }
-
+    if let Some(target_people_number_l) = pager.people_number_l {
+      sql = sql.filter(people_number.ge(target_people_number_l));
+    }
+    if let Some(target_people_number_r) = pager.people_number_r {
+      sql = sql.filter(people_number.le(target_people_number_r));
+    }
+    if let Some(target_start_time_l) = pager.start_time_l {
+      sql = sql.filter(start_time.ge(target_start_time_l));
+    }
+    if let Some(target_start_time_r) = pager.start_time_r {
+      sql = sql.filter(start_time.le(target_start_time_r));
+    }
+    if let Some(target_end_time_l) = pager.end_time_l {
+      sql = sql.filter(end_time.ge(target_end_time_l));
+    }
+    if let Some(target_end_time_r) = pager.end_time_r {
+      sql = sql.filter(end_time.le(target_end_time_r));
+    }
+    if let Some(target_product_type) = pager.product_type {
+      sql = sql.filter(product_type.eq(target_product_type));
+    }
+    if let Some(target_duration) = pager.duration {
+      sql = sql.filter(duration.eq(target_duration));
+    }
+    if let Some(target_executor) = pager.executor {
+      sql = sql.filter(executor.like(format!("%{}%",target_executor)));
+    }
     sql
   };
   let list = get_sql(pager.clone())
@@ -44,9 +74,20 @@ pub fn get_ledger_list(
     page: pager.page,
     page_size: pager.page_size,
     total: count,
-    data: list
-      .iter()
-      .map(|l| l.to_res_dto())
-      .collect(),
+    data: list,
   })
+}
+
+/**
+ * 更新台账配置信息
+ */
+pub fn update_ledger(
+  conn: &mut Conn,
+  target_ledger: UpdateLedgerDTO,
+) -> QueryResult<bool> {
+  let target = ledger.filter(id.eq(target_ledger.id.clone()));
+  diesel_to_res(diesel::update(target)
+    .set(target_ledger)
+    .execute(conn)
+  )
 }

@@ -214,3 +214,24 @@ pub async fn insert_order<'a>(
   // 5. 返回不合理数据
   Ok(err_list)
 }
+
+
+pub async fn consumer_product<'a>(
+  pool: web::Data<DbPool>,
+  target_product: AddOrderDTO,
+) -> Result<(), &'a str> {
+  let res = web::block(move || {
+    dao::product::consumer_product_to_order(&pool, target_product)
+  }).await.unwrap();
+  
+  match res {
+    Err(e) => {
+      eprintln!("{:?}", e);
+      Err("购买失败")
+    },
+    Ok(res) => match res {
+      true => Ok(()),
+      false => Err("购买失败"),
+    }
+  }
+}

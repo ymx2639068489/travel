@@ -103,6 +103,17 @@ pub fn query_order_list(
   })
 }
 
+/**
+ * 查询产品的所有销售记录，进行汇总
+ */
+pub fn query_all_order_by_product_id(
+  conn: &mut Conn,
+  target_product_id: String,
+) -> QueryResult<Vec<OrderDTO>> {
+  crate::schema::order::table
+    .filter(product_id.eq(target_product_id))
+    .load::<OrderDTO>(conn)
+}
 
 /**
  * 查询满足条件的总人数

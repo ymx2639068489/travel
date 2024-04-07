@@ -38,10 +38,51 @@ impl LedgerDTO {
   }
 }
 #[derive(Debug, Clone, Deserialize)]
-pub struct AddLedgerDTO {
+pub struct ReqAddLedgerDTO {
   pub id: String,
+  pub cost: String,
   pub pay_status: String,
   pub executor: String,
+  pub notes: Option<String>,
+}
+#[derive(Debug, Clone, Deserialize)]
+pub struct ReqUpdateLedgerDTO {
+  pub id: String,
+  pub cost: Option<String>,
+  pub pay_status: Option<String>,
+  pub executor: Option<String>,
+  pub notes: Option<String>,
+}
+
+impl ReqUpdateLedgerDTO {
+  pub fn to_update_ledger_dto(&self) -> UpdateLedgerDTO {
+    if let Some(target_cost) = &self.cost {
+      UpdateLedgerDTO {
+        id: self.id.clone(),
+        cost: Some(target_cost.parse::<BigDecimal>().unwrap()),
+        pay_status: self.pay_status.clone(),
+        executor: self.executor.clone(),
+        notes: self.notes.clone(),
+      }
+    } else {
+      UpdateLedgerDTO {
+        id: self.id.clone(),
+        cost: None,
+        pay_status: self.pay_status.clone(),
+        executor: self.executor.clone(),
+        notes: self.notes.clone(),
+      }
+    }
+  }
+}
+
+#[derive(Debug, Clone, AsChangeset)]
+#[diesel(table_name = crate::schema::ledger)]
+pub struct UpdateLedgerDTO {
+  pub id: String,
+  pub cost: Option<BigDecimal>,
+  pub pay_status: Option<String>,
+  pub executor: Option<String>,
   pub notes: Option<String>,
 }
 
