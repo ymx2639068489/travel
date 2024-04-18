@@ -1,7 +1,7 @@
 
 use actix_web::{middleware::Logger, web, App, HttpServer};
 use diesel::{r2d2, MysqlConnection};
-mod controler;
+mod controller;
 pub mod utils;
 pub mod config;
 pub mod service;
@@ -20,7 +20,6 @@ type DbPool = r2d2::Pool<r2d2::ConnectionManager<MysqlConnection>>;
 
 
 // 初始化环境，并把连接池和env config返回
-// fn init_env() -> (config::Config, DbPool) {
 fn init_env() -> DbPool {
   dotenv::dotenv().ok();
   std::env::set_var("RUST_LOG", "info");
@@ -32,9 +31,6 @@ fn init_env() -> DbPool {
   let pool: DbPool = r2d2::Pool::builder()
     .build(r2d2::ConnectionManager::<MysqlConnection>::new(&env.database_url))
     .expect("database url error");
-  // let pool = diesel::mysql::MysqlConnection::establish(&env.database_url)
-  //   .unwrap_or_else(|_| panic!("error connecting to {}", env.database_url));
-  // (env, pool)
   pool
 }
 
@@ -42,16 +38,18 @@ fn init_env() -> DbPool {
 async fn main() -> std::io::Result<()> {
 
   let pool = init_env();
+  let port =  std::env::var("PORT")
+      .expect("DATABASE_URL must be set");
 
-  println!("🚀 Server started successfully: http://localhost:8080");
+  println!("🚀 Server started successfully: http://0.0.0.0:{}", port);
   HttpServer::new(move || {
     App::new()
       .app_data(web::Data::new(pool.clone()))
       .wrap(Logger::default())
-      .service(web::scope("/v1").configure(controler::front::init_routes))
-      .service(web::scope("/v2").configure(controler::back::init_routes))
+      .service(web::scope("/v1").configure(controller::front::init_routes))
+      .service(web::scope("/v2").configure(controller::back::init_routes))
   })
-  .bind(("127.0.0.1", 8080))?
+  .bind(("0.0.0.0", port.parse().unwrap()))?
   .run()
   .await
 }

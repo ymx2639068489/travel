@@ -18,14 +18,10 @@ fn build_code(input: TokenStream, table: &str, rule_value: &str) -> TokenStream 
   // 解析输入的函数
   let mut func = parse_macro_input!(input as ItemFn);
 
-  // 获取函数的名称
-  let func_name = &func.sig.ident;
   // 构造函数体的代码
   let func_block = &func.block;
   let output = quote! {
     {
-      println!("fun {} starts", stringify!(#func_name));
-      let start_time = std::time::Instant::now();
       let __log_result = {
         let __res = jwt.validate_role(&pool, #table, #rule_value).await;
         // 验证通过了继续，否则退出
@@ -35,9 +31,6 @@ fn build_code(input: TokenStream, table: &str, rule_value: &str) -> TokenStream 
           #func_block
         }
       };
-      let end_time = std::time::Instant::now();
-      let duration = end_time - start_time;
-      println!("funciton {} execution time: {:?}", stringify!(#func_name), duration);
       __log_result
     }
   };
@@ -46,29 +39,5 @@ fn build_code(input: TokenStream, table: &str, rule_value: &str) -> TokenStream 
   func.block = syn::parse2(output).unwrap();
 
   // 将新的函数定义转换回 TokenStream
-  quote! { #func }.into()
+  (quote! { #func }).into()
 }
-
-// fn add_jwt_args(input: TokenStream) -> TokenStream {
-//   let mut func = input.to_string();
-//   // 第一次以大括号分割，第一个大括号一般都是函数体与函数签名分割的地方
-//   if let Some((head, body)) = func.split_once("{") {
-//     // 第二次以fn 分割，因为函数签名上面可能还有一些其他的宏
-//     if let Some((hhead, hbody)) = head.split_once("fn") {
-//       let l = hbody.find("(").unwrap();
-//       let r = hbody.rfind(")").unwrap();
-
-//       let args = &hbody[l+1..r];
-
-//       let new_args = if args.len() == 0 {
-//         "jwt_admin_data: crate::JwtAdminData".to_owned()
-//       } else {
-//         args.to_owned() + ", jwt_admin_data: crate::JwtAdminData"
-//       };
-//       let new_head = "fn ".to_owned() + &hbody[0..l+1] + &new_args + &hbody[r..];
-//       func = hhead.to_owned() + &new_head + "{" + body;
-//     }
-//   }
-//   func.parse().unwrap()
-
-// }
