@@ -17,6 +17,7 @@ pub struct RoleDTO {
   pub sales_records_value: i32,
   pub product_value: i32,
   pub custom_value: i32,
+  pub base_product_value: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -32,6 +33,7 @@ pub struct AddRoleDTO {
   pub sales_records_value: i32,
   pub product_value: i32,
   pub custom_value: i32,
+  pub base_product_value: i32,
 }
 
 impl AddRoleDTO {
@@ -49,6 +51,7 @@ impl AddRoleDTO {
       sales_records_value: self.sales_records_value,
       product_value: self.product_value,
       custom_value: self.custom_value,
+      base_product_value: self.base_product_value,
     }
   }
 }
@@ -71,4 +74,5 @@ pub struct UpdateRoleDTO {
   pub sales_records_value: Option<i32>,
   pub product_value: Option<i32>,
   pub custom_value: Option<i32>,
+  pub base_product_value: Option<i32>,
 }

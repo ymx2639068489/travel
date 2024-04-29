@@ -3,8 +3,7 @@ use actix_web::{
 };
 use crate::{
   models::{
-    admin::*,
-    RemoveImportInformation,
+    admin::*, QueryUuid, RemoveImportInformation
   },
   service,
   DbPool,
@@ -85,11 +84,11 @@ async fn update_admin(
 async fn delete_admin(
   pool: web::Data<DbPool>,
   jwt: JwtAdminData,
-  target_admin_id: web::Query<String>,
+  target_admin_id: web::Query<QueryUuid>,
 ) -> Res<impl Responder> {
   let res = service::admin::delete_admin_by_id(
     &pool,
-    target_admin_id.into_inner()
+    target_admin_id.id.clone(),
   ).await;
   Ok(match res {
     Ok(_) => Response::ok("", "删除成功"),

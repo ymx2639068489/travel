@@ -4,7 +4,7 @@ use actix_web::{
   delete, get, post, put, web, Responder, Result as Res
 };
 use crate::{
-  models::{salesman::*, QueryUuid}, service, DbPool, JwtAdminData, Response
+  models::{salesman::*, QueryId}, service, DbPool, JwtAdminData, Response
 };
 
 #[get("/get_list")]
@@ -66,11 +66,11 @@ async fn update_one_salesman(
 async fn delete_one_role(
   pool: web::Data<DbPool>,
   jwt: JwtAdminData,
-  target_salesman: web::Query<QueryUuid>,
+  target_salesman: web::Query<QueryId>,
 ) -> Res<impl Responder> {
-  let res = service::role::delete_role_by_id(
+  let res = service::salesman::delete_salesman(
     &pool,
-    target_salesman.id.clone()
+    target_salesman.id
   ).await;
   Ok(match res {
     Ok(_) => Response::ok("", "删除成功"),

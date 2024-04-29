@@ -44,5 +44,6 @@ pub struct UpdateBaseProductDTO {
 pub struct BaseProductQueryDTO {
   pub page: i64,
   pub page_size: i64,
+  pub id: Option<String>,
   pub name: Option<String>,
 }

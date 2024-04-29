@@ -12,7 +12,7 @@ use verify_role::verify_permissions;
  * 获取基础产品列表
  */
 #[get("/get_list")]
-#[verify_permissions(product, query)]
+#[verify_permissions(base_product, query)]
 async fn get_base_product_list(
   pager: web::Query<BaseProductQueryDTO>,
   pool: web::Data<DbPool>,
@@ -33,7 +33,7 @@ async fn get_base_product_list(
  * 更新基础产品
  */
 #[put("/update")]
-#[verify_permissions(product, update)]
+#[verify_permissions(base_product, update)]
 async fn update_base_product(
   pool: web::Data<DbPool>,
   jwt: JwtAdminData,
@@ -54,7 +54,7 @@ async fn update_base_product(
  * 添加基础产品
  */
 #[post("/insert")]
-#[verify_permissions(product, insert)]
+#[verify_permissions(base_product, insert)]
 async fn add_one_base_product(
   target_base_product: web::Json<AddBaseProductDTO>,
   pool: web::Data<DbPool>,
@@ -74,7 +74,7 @@ async fn add_one_base_product(
  * 删除基本产品
  */
 #[delete("/delete")]
-#[verify_permissions(product, delete)]
+#[verify_permissions(base_product, delete)]
 async fn delete_one_base_product(
   pool: web::Data<DbPool>,
   jwt: JwtAdminData,
@@ -98,5 +98,6 @@ pub fn init_routes(cfg: &mut web::ServiceConfig) {
     .service(get_base_product_list)
     .service(update_base_product)
     .service(add_one_base_product)
+    .service(delete_one_base_product)
     ;
 }

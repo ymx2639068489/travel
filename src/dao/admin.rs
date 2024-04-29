@@ -25,34 +25,34 @@ pub fn query_admin_list(
 ) -> QueryResult<ResponseList<AdminJoinDTO>> {
   use crate::schema::admin::dsl::*;
 
-  let get_sql = |pager: AdminQueryPager| {
+  let get_sql = |pager: &AdminQueryPager| {
     let mut sql = crate::schema::admin::table
       .into_boxed()
       .inner_join(role::table)
       .inner_join(company::table)
       .select((AdminDTO::as_select(), RoleDTO::as_select(), CompanyDTO::as_select()));
   
-    if let Some(target_username) = pager.username {
+    if let Some(target_username) = &pager.username {
       sql = sql.filter(username.like(format!("%{}%", target_username)));
     }
-    if let Some(target_nickname) = pager.nickname {
+    if let Some(target_nickname) = &pager.nickname {
       sql = sql.filter(nickname.like(format!("%{}%", target_nickname)));
     }
-    if let Some(target_phone) = pager.phone {
+    if let Some(target_phone) = &pager.phone {
       sql = sql.filter(phone.like(format!("%{}%", target_phone)));
     }
-    if let Some(target_company_id) = pager.company_id {
-      sql = sql.filter(company_id.eq(target_company_id));
+    if let Some(target_company_id) = &pager.company_id {
+      sql = sql.filter(company_id.eq(format!("{}", target_company_id)));
     }
     sql
   };
 
-  let list = get_sql(pager.clone())
+  let list = get_sql(&pager)
     .limit(pager.page_size)
     .offset((pager.page - 1) * pager.page_size)
     .load::<(AdminDTO, RoleDTO, CompanyDTO)>(conn)?;
 
-  let count = get_sql(pager.clone())
+  let count = get_sql(&pager)
     .count()
     .get_result(conn)
     .expect("");

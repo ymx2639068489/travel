@@ -2,6 +2,7 @@
 use actix_web::{middleware::Logger, web, App, HttpServer};
 use diesel::{r2d2, MysqlConnection};
 mod controller;
+use actix_cors::Cors;
 pub mod utils;
 pub mod config;
 pub mod service;
@@ -46,6 +47,9 @@ async fn main() -> std::io::Result<()> {
     App::new()
       .app_data(web::Data::new(pool.clone()))
       .wrap(Logger::default())
+      .wrap(
+        Cors::permissive()
+      )
       .service(web::scope("/v1").configure(controller::front::init_routes))
       .service(web::scope("/v2").configure(controller::back::init_routes))
   })

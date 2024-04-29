@@ -35,7 +35,8 @@ create table  role
        salesman_value    INT not null,
        sales_records_value INT not null,
        product_value     INT not null,
-       custom_value      INT not null
+       custom_value      INT not null,
+       base_product_value INT not null
 ) comment '角色';
 alter  table role
        add constraint PK_role_id primary key (id);

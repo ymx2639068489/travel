@@ -25,11 +25,11 @@ pub fn query_ledger_list(
   conn: &mut Conn,
   pager: LedgerQueryPager,
 ) -> QueryResult<ResponseList<LedgerDTO>> {
-  let get_sql = |pager: LedgerQueryPager| {
+  let get_sql = |pager: &LedgerQueryPager| {
     let mut sql = crate::schema::ledger::table
       .into_boxed();
 
-    if let Some(target_product_name) = pager.product_name {
+    if let Some(target_product_name) = &pager.product_name {
       sql = sql.filter(product_name.like(format!("%{}%", target_product_name)));
     }
     if let Some(target_people_number_l) = pager.people_number_l {
@@ -50,23 +50,23 @@ pub fn query_ledger_list(
     if let Some(target_end_time_r) = pager.end_time_r {
       sql = sql.filter(end_time.le(target_end_time_r));
     }
-    if let Some(target_product_type) = pager.product_type {
-      sql = sql.filter(product_type.eq(target_product_type));
+    if let Some(target_product_type) = &pager.product_type {
+      sql = sql.filter(product_type.eq(format!("{}", target_product_type)));
     }
     if let Some(target_duration) = pager.duration {
       sql = sql.filter(duration.eq(target_duration));
     }
-    if let Some(target_executor) = pager.executor {
+    if let Some(target_executor) = &pager.executor {
       sql = sql.filter(executor.like(format!("%{}%",target_executor)));
     }
     sql
   };
-  let list = get_sql(pager.clone())
+  let list = get_sql(&pager)
     .limit(pager.page_size)
     .offset((pager.page - 1) * pager.page_size)
     .load::<LedgerDTO>(conn)?;
 
-  let count = get_sql(pager.clone())
+  let count = get_sql(&pager)
     .count()
     .get_result(conn)
     .expect("");

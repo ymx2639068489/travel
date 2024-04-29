@@ -38,7 +38,7 @@ async fn add_one(
 #[delete("/delete")]
 #[verify_permissions(company, delete)]
 async fn delete_one_company(
-  company: web::Json<QueryUuid>,
+  company: web::Query<QueryUuid>,
   pool: web::Data<DbPool>,
   jwt: JwtAdminData,
 ) -> Res<impl Responder> {
@@ -47,7 +47,7 @@ async fn delete_one_company(
     company.id.clone(),
   ).await;
   Ok(match res {
-    Ok(_) => Response::ok("", "新增成功"),
+    Ok(_) => Response::ok("", "删除成功"),
     Err(e) => Response::server_error(e),
   })
 }
@@ -56,5 +56,6 @@ pub fn init_routes(cfg: &mut web::ServiceConfig) {
   cfg
     .service(get_all_compnay)
     .service(add_one)
+    .service(delete_one_company)
     ;
 }

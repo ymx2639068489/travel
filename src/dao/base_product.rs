@@ -23,6 +23,9 @@ pub fn query_all_base_product(
     if let Some(target_name) = &pager.name {
       sql = sql.filter(name.like(format!("%{}%", target_name)));
     }
+    if let Some(target_id) = &pager.id {
+      sql = sql.filter(id.eq(format!("{}", target_id)));
+    }
     sql
   };
 

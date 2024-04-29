@@ -36,7 +36,7 @@ async fn delete_one_custom(
     target_custom.into_inner(),
   ).await;
   Ok(match res {
-    Ok(_) => Response::ok("", "新增成功"),
+    Ok(_) => Response::ok("", "更新成功"),
     Err(e) => Response::server_error(e),
   })
 }

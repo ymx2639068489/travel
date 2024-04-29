@@ -66,6 +66,7 @@ impl JwtAdminData {
           "sales_records" => verity(admin.role.sales_records_value, rule_value),
           "product" => verity(admin.role.product_value, rule_value),
           "custom" => verity(admin.role.custom_value, rule_value),
+          "base_product" => verity(admin.role.base_product_value, rule_value),
           _ => panic!("Invalid role: {}", table),
         }
       },

@@ -9,6 +9,7 @@ edition = "2021"
 [dependencies]
 futures = "0.3"
 actix-web = "4"
+actix-cors = "0.7.0"
 diesel = { version = "2.1.5", features = ["mysql", "r2d2", "chrono", "bigdecimal"] }
 bigdecimal = "0.4.2"
 dotenv = "0.15.0"
