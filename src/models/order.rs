@@ -3,7 +3,7 @@ use diesel::{deserialize::Queryable, prelude::Insertable, Selectable};
 use serde::{Deserialize, Serialize};
 
 use super::{
-  product::ProductDTO,
+  product::{ProductDTO, ProductJoinDTO},
   salesman::SalesmanDTO,
   user::UserDTO
 };
@@ -34,7 +34,7 @@ pub struct OrderDTO {
 impl OrderDTO {
   pub fn to_join_order_dto(
     &self,
-    target_product: ProductDTO,
+    target_product: ProductJoinDTO,
     target_salesman: SalesmanDTO,
     target_custom: UserDTO,
   ) -> JoinOrderDTO {
@@ -64,8 +64,9 @@ pub struct ResJoinOrderDTO {
   pub id: i32,
   pub custom: crate::models::user::UserDTO,
   pub salesman: crate::models::salesman::SalesmanDTO,
-  pub product: crate::models::product::ResProductDTO,
+  pub product: crate::models::product::ResProductJoinDTO,
   pub create_at: chrono::NaiveDateTime,
+  pub order_time: chrono::NaiveDateTime,
   pub company: String,
   pub order_id: String,
   pub pay_method: String,
@@ -81,7 +82,7 @@ pub struct JoinOrderDTO {
   pub id: i32,
   pub custom: crate::models::user::UserDTO,
   pub salesman: crate::models::salesman::SalesmanDTO,
-  pub product: crate::models::product::ProductDTO,
+  pub product: crate::models::product::ProductJoinDTO,
   pub create_at: chrono::NaiveDateTime,
   pub order_time: chrono::NaiveDateTime,
   pub company: String,
@@ -100,6 +101,7 @@ impl JoinOrderDTO {
       salesman: self.salesman.clone(),
       product: self.product.to_res_dto(),
       create_at: self.create_at,
+      order_time: self.order_time,
       company: self.company.clone(),
       order_id: self.order_id.clone(),
       pay_method: self.pay_method.clone(),

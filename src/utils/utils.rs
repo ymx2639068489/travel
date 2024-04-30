@@ -39,7 +39,7 @@ pub fn now_to_naive_date_time() -> chrono::NaiveDateTime {
  *  "2015-07-01 08:59:60"
  */
 pub fn str_to_naive_date_time(str: &str) -> chrono::NaiveDateTime {
-  println!("{}", str);
+  // println!("{}", str);
   let res = chrono::NaiveDateTime::parse_from_str(str, "%Y-%m-%d %H:%M:%S");
 
   match res {

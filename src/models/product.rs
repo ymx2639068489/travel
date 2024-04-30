@@ -33,6 +33,7 @@ impl ProductDTO {
       start_time: self.start_time,
       end_time: self.end_time,
       people_number: self.people_number,
+      surplus: self.surplus,
       duration: self.duration,
       product_type: self.product_type.clone(),
       notes: self.notes.clone(),
@@ -49,6 +50,7 @@ pub struct ProductJoinDTO {
   pub start_time: chrono::NaiveDateTime,
   pub end_time: chrono::NaiveDateTime,
   pub people_number: i32,
+  pub surplus: i32,
   pub duration: i32,
   pub product_type: String,
   pub notes: Option<String>,
@@ -68,6 +70,7 @@ impl ProductJoinDTO {
       start_time: self.start_time,
       end_time: self.end_time,
       people_number: self.people_number,
+      surplus: self.surplus,
       duration: self.duration,
       product_type: self.product_type.clone(),
       notes: self.notes.clone(),
@@ -84,6 +87,7 @@ pub struct ResProductJoinDTO {
   pub start_time: chrono::NaiveDateTime,
   pub end_time: chrono::NaiveDateTime,
   pub people_number: i32,
+  pub surplus: i32,
   pub duration: i32,
   pub product_type: String,
   pub notes: Option<String>,
@@ -144,8 +148,8 @@ pub struct UpdateProductDTO {
 pub struct ReqUpdateProductDTO {
   pub id: String,
   pub price: Option<String>,
-  pub start_time: Option<chrono::NaiveDateTime>,
-  pub end_time: Option<chrono::NaiveDateTime>,
+  pub start_time: Option<String>,
+  pub end_time: Option<String>,
   pub people_number: Option<i32>,
   pub duration: Option<i32>,
   pub product_type: Option<String>,
@@ -157,11 +161,19 @@ impl ReqUpdateProductDTO {
     if let Some(price) = &self.price {
       res = price.parse().unwrap();
     }
+    let mut start_time: Option<chrono::NaiveDateTime> = None;
+    let mut end_time: Option<chrono::NaiveDateTime> = None;
+    if let Some(time) = &self.start_time {
+      start_time = Some(str_to_naive_date_time(time));
+    }
+    if let Some(time) = &self.end_time {
+      end_time = Some(str_to_naive_date_time(time));
+    }
     UpdateProductDTO {
       id: self.id.clone(),
       price: Some(res),
-      start_time: self.start_time.clone(),
-      end_time: self.end_time.clone(),
+      start_time,
+      end_time,
       people_number: self.people_number.clone(),
       duration: self.duration.clone(),
       product_type: self.product_type.clone(),

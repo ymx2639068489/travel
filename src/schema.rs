@@ -166,6 +166,7 @@ diesel::table! {
         product_value -> Integer,
         custom_value -> Integer,
         base_product_value -> Integer,
+        ledger_value -> Integer
     }
 }
 

@@ -6,7 +6,6 @@ use crate::{
 };
 #[get("/get_list")]
 async fn get_list(
-  _: JwtUserData,
   pool: web::Data<DbPool>,
   pager: web::Query<FrontProductQueryDTO>,
 ) -> Res<impl Responder> {
@@ -53,5 +52,6 @@ async fn buy_product(
 pub fn init_routes(cfg: &mut web::ServiceConfig) {
   cfg
     .service(get_list)
+    .service(buy_product)
     ;
 }

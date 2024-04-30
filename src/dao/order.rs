@@ -1,11 +1,8 @@
 use crate::{
   models::{
-    order::*,
-    product::ProductDTO,
-    salesman::SalesmanDTO,
-    user::UserDTO
+    base_product::BaseProductDTO, order::*, product::ProductDTO, salesman::SalesmanDTO, user::UserDTO
   },
-  schema::{custom, product, salesman},
+  schema::{custom, product, salesman, order, base_product},
   utils::sql_response::diesel_to_res,
   ResponseList
 };
@@ -23,12 +20,14 @@ pub fn query_order_list(
   let get_sql = |pager: OrderQueryPager| {
     let mut sql = crate::schema::order::table
       .into_boxed()
-      .inner_join(product::table)
+      .inner_join(product::table.on(order::product_id.eq(product::id.nullable())))
+      .inner_join(base_product::table.on(product::base_product_id.eq(base_product::id.nullable())))
       .inner_join(salesman::table)
       .inner_join(custom::table)
       .select((
         OrderDTO::as_select(),
         ProductDTO::as_select(),
+        BaseProductDTO::as_select(),
         SalesmanDTO::as_select(),
         UserDTO::as_select(),
       ));
@@ -81,7 +80,7 @@ pub fn query_order_list(
   let list = get_sql(pager.clone())
     .limit(pager.page_size)
     .offset((pager.page - 1) * pager.page_size)
-    .load::<(OrderDTO, ProductDTO, SalesmanDTO, UserDTO)>(conn)?;
+    .load::<(OrderDTO, ProductDTO, BaseProductDTO, SalesmanDTO, UserDTO)>(conn)?;
 
   let count = get_sql(pager.clone())
     .count()
@@ -94,8 +93,8 @@ pub fn query_order_list(
     total: count,
     data: list
       .iter()
-      .map(|(o, p, s, u)| o.to_join_order_dto(
-        p.clone(),
+      .map(|(o, p, b, s, u)| o.to_join_order_dto(
+        p.clone().to_product_join_dto(b.clone()),
         s.clone(),
         u.clone(),
       ))

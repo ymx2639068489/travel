@@ -18,7 +18,7 @@ pub fn init_routes(cfg: &mut web::ServiceConfig) {
     .service(web::scope("/product").configure(product::init_routes))
     .service(web::scope("/salesman").configure(salesman::init_routes))
     .service(web::scope("/custom").configure(custom::init_routes))
-    .service(web::scope("/order").configure(order::init_routes))
+    .service(web::scope("/sales_records").configure(order::init_routes))
     .service(web::scope("/ledger").configure(ledger::init_routes))
   ;
 }

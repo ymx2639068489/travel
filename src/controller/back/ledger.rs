@@ -80,5 +80,6 @@ pub fn init_routes(cfg: &mut web::ServiceConfig) {
   cfg
     .service(get_list)
     .service(add_one_ledger)
+    .service(update_one_ledger)
     ;
 }
