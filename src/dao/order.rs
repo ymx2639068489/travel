@@ -102,6 +102,35 @@ pub fn query_order_list(
   })
 }
 
+pub fn user_query_order_list(
+  conn: &mut Conn,
+  target_custom_id: i32,
+  target_product_id: Option<String>,
+) -> QueryResult<Vec<JoinOrderUserDTO>> {
+  let mut sql = crate::schema::order::table
+    .into_boxed()
+    .inner_join(product::table.on(order::product_id.eq(product::id.nullable())))
+    .inner_join(base_product::table.on(product::base_product_id.eq(base_product::id.nullable())))
+    .select((
+      OrderDTO::as_select(),
+      ProductDTO::as_select(),
+      BaseProductDTO::as_select(),
+    ))
+    .filter(order::dsl::custom_id.eq(target_custom_id))
+    ;
+  if let Some(target_product_id) = target_product_id {
+    sql = sql.filter(product_id.eq(target_product_id));
+  }
+  let list = sql.load::<(OrderDTO, ProductDTO, BaseProductDTO)>(conn)?;
+  return Ok(list
+    .iter()
+    .map(|(o, p, b)| o.to_join_order_user_dto(
+      p.clone().to_product_join_dto(b.clone())
+    ))
+    .collect()
+  )
+}
+
 /**
  * 查询产品的所有销售记录，进行汇总
  */

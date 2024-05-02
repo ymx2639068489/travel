@@ -1,7 +1,7 @@
 
 use actix_web::{get, post, web, Responder, Result as Res};
 use crate::{
-  models::{order::ReqBuyProductDTO, product::*},
+  models::{order::ReqBuyProductDTO, product::*, QueryUuid},
   service, DbPool, JwtUserData, Response, ResponseList
 };
 #[get("/get_list")]
@@ -34,10 +34,11 @@ async fn get_list(
 
 #[post("/buy_product")]
 async fn buy_product(
-  _: JwtUserData,
+  user: JwtUserData,
   pool: web::Data<DbPool>,
-  dto: web::Json<ReqBuyProductDTO>,
+  mut dto: web::Json<ReqBuyProductDTO>,
 ) -> Res<impl Responder> {
+  dto.custom_id = Some(user.id);
   let res = service::order::consumer_product(
     pool,
     dto.to_buy_product_dto(),
@@ -49,9 +50,26 @@ async fn buy_product(
   })
 }
 
+#[get("/details")]
+async fn get_details(
+  pool: web::Data<DbPool>,
+  pager: web::Query<QueryUuid>,
+) -> Res<impl Responder> {
+  let res = service::product::get_product_by_id(
+    &pool,
+    pager.id.clone(),
+  ).await;
+
+  Ok(match res {
+    Ok(data) => Response::ok(data.to_res_dto(), "获取成功"),
+    Err(e) => Response::client_error(e),
+  })
+}
+
 pub fn init_routes(cfg: &mut web::ServiceConfig) {
   cfg
     .service(get_list)
     .service(buy_product)
+    .service(get_details)
     ;
 }

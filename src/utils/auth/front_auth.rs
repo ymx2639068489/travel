@@ -26,7 +26,7 @@ impl Claims {
 pub fn create_jwt(id: &i32) -> String {
   let expiration = Utc::now()
     .checked_add_signed(
-      chrono::Duration::try_seconds(3600)
+      chrono::Duration::try_seconds(60 * 60 * 24)
         .expect("Invalid expiration")
     )
     .expect("valid timestamp")

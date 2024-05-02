@@ -3,7 +3,7 @@ use diesel::{deserialize::Queryable, prelude::Insertable, Selectable};
 use serde::{Deserialize, Serialize};
 
 use super::{
-  product::{ProductDTO, ProductJoinDTO},
+  product::ProductJoinDTO,
   salesman::SalesmanDTO,
   user::UserDTO
 };
@@ -53,6 +53,20 @@ impl OrderDTO {
       rebate: self.rebate.clone(),
     }
   }
+  pub fn to_join_order_user_dto(&self, target_product: ProductJoinDTO) -> JoinOrderUserDTO {
+    JoinOrderUserDTO {
+      id: self.id,
+      product: target_product,
+      create_at: self.create_at,
+      order_time: self.order_time,
+      company: self.company.clone(),
+      order_id: self.order_id.clone(),
+      pay_method: self.pay_method.clone(),
+      money: self.money.clone(),
+      people_number: self.people_number,
+      rebate: self.rebate.clone(),
+    }
+  }
 }
 
 
@@ -64,6 +78,19 @@ pub struct ResJoinOrderDTO {
   pub id: i32,
   pub custom: crate::models::user::UserDTO,
   pub salesman: crate::models::salesman::SalesmanDTO,
+  pub product: crate::models::product::ResProductJoinDTO,
+  pub create_at: chrono::NaiveDateTime,
+  pub order_time: chrono::NaiveDateTime,
+  pub company: String,
+  pub order_id: String,
+  pub pay_method: String,
+  pub money: String,
+  pub people_number: i32,
+  pub rebate: Option<String>,
+}
+#[derive(Clone, Debug, Serialize)]
+pub struct ResJoinOrderUserDTO {
+  pub id: i32,
   pub product: crate::models::product::ResProductJoinDTO,
   pub create_at: chrono::NaiveDateTime,
   pub order_time: chrono::NaiveDateTime,
@@ -92,7 +119,6 @@ pub struct JoinOrderDTO {
   pub people_number: i32,
   pub rebate: Option<String>,
 }
-
 impl JoinOrderDTO {
   pub fn to_res_dto(&self) -> ResJoinOrderDTO {
     ResJoinOrderDTO {
@@ -110,6 +136,41 @@ impl JoinOrderDTO {
       rebate: self.rebate.clone(),
     }
   }
+}
+#[derive(Debug, Clone)]
+pub struct JoinOrderUserDTO {
+  pub id: i32,
+  pub product: crate::models::product::ProductJoinDTO,
+  pub create_at: chrono::NaiveDateTime,
+  pub order_time: chrono::NaiveDateTime,
+  pub company: String,
+  pub order_id: String,
+  pub pay_method: String,
+  pub money: BigDecimal,
+  pub people_number: i32,
+  pub rebate: Option<String>,
+}
+
+impl JoinOrderUserDTO {
+  pub fn to_res_dto(&self) -> ResJoinOrderUserDTO {
+    ResJoinOrderUserDTO {
+      id: self.id,
+      product: self.product.to_res_dto(),
+      create_at: self.create_at,
+      order_time: self.order_time,
+      company: self.company.clone(),
+      order_id: self.order_id.clone(),
+      pay_method: self.pay_method.clone(),
+      money: self.money.to_string(),
+      people_number: self.people_number,
+      rebate: self.rebate.clone(),
+    }
+  }
+}
+
+#[derive(Debug, Clone, Deserialize)]
+pub struct FrontQueryOrderDTO {
+  pub product_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -239,7 +300,7 @@ impl ReqBuyProductDTO {
       create_at: crate::utils::now_to_naive_date_time(),
       order_time: crate::utils::now_to_naive_date_time(),
       // 系统所属公司
-      company: String::from("764a3f66-bbc5-42c3-8a90-24a6d5e284cf"),
+      company: String::from("系统售出"),
       order_id: uuid::Uuid::new_v4().to_string(),
       pay_method: String::from("系统售出支付"),
       money: self.money.parse::<BigDecimal>().unwrap(),

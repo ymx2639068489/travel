@@ -9,11 +9,38 @@ use crate::{
 pub async fn get_list<'a>(
   pool: &web::Data<DbPool>,
   pager: OrderQueryPager,
-) -> Result<ResponseList<JoinOrderDTO>, &'a str>{
+) -> Result<ResponseList<JoinOrderDTO>, &'a str> {
   let mut conn = pool.get().expect("");
 
   let res = web::block(move ||
     dao::order::query_order_list(&mut conn, pager)
+  ).await;
+
+  match res {
+    Err(e) => {
+      eprintln!("{:?}", e);
+      Err("数据库查询错误")
+    },
+    Ok(res) => {
+      match res {
+        Ok(res) => Ok(res),
+        Err(e) => {
+          eprintln!("{:?}", e);
+          Err("查询错误")
+        }
+      }
+    }
+  }
+}
+
+pub async fn get_user_order_list<'a>(
+  pool: &web::Data<DbPool>,
+  custom_id: i32,
+  product_id: Option<String>,
+) -> Result<Vec<JoinOrderUserDTO>, &'a str> {
+  let mut conn = pool.get().expect("");
+  let res = web::block(move ||
+    dao::order::user_query_order_list(&mut conn, custom_id, product_id)
   ).await;
 
   match res {

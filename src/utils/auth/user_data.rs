@@ -1,9 +1,10 @@
 
 use crate::utils::auth::front_auth;
 use actix_web::{dev::Payload, error, Error, FromRequest, HttpRequest};
+use serde::{Deserialize, Serialize};
 use std::future::{ready, Ready};
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct JwtUserData {
   pub id: i32,
 }

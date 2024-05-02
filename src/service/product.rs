@@ -142,3 +142,28 @@ pub async fn delete_product<'a>(
     }
   }
 }
+
+
+pub async fn get_product_by_id<'a>(
+  pool: &web::Data<crate::DbPool>,
+  id: String,
+) -> Result<ProductJoinDTO, &'a str> {
+  let mut conn = pool.get().expect("");
+
+  let res = web::block(move ||
+    dao::product::query_product_by_id(& mut conn, id.clone())
+  ).await;
+  match res {
+    Err(e) => {
+      eprint!("{}", e);
+      Err("数据库查询错误")
+    },
+    Ok(res) => match res {
+      Ok(res) => Ok(res),
+      Err(e) => {
+        eprint!("{}", e);
+        Err("查询错误")
+      }
+    }
+  }
+}

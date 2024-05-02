@@ -1,15 +1,11 @@
-
-use diesel::{
-  QueryDsl, QueryResult,
-  prelude::*,
-};
-
+use diesel::{self, prelude::*, QueryDsl, QueryResult};
 type Conn = diesel::MysqlConnection;
-
 use crate::{
-  models::{base_product::BaseProductDTO, order::AddOrderDTO, product::*}, schema::product::dsl::*, utils::sql_response::diesel_to_res, ResponseList
+  models::{base_product::BaseProductDTO, order::AddOrderDTO, product::*},
+  schema::product::dsl::*,
+  utils::sql_response::diesel_to_res,
+  ResponseList,
 };
-
 pub fn front_query_product_list(
   conn: &mut Conn,
   pager: FrontProductQueryDTO,
@@ -181,17 +177,24 @@ pub fn consumer_product_to_order(
   pool: &actix_web::web::Data<crate::DbPool>,
   target_order: AddOrderDTO,
 ) -> QueryResult<bool> {
-  // let conn1 = conn.clone();
   let res = pool.get().expect("").transaction::<_, diesel::result::Error, _>(|_| {
-    let target_product = product.filter(id.eq(target_order.product_id.clone().unwrap()));
-    let _ = diesel::update(target_product)
-      .set(surplus.eq(surplus - 1))
-      .execute(&mut pool.get().expect(""));
+    let product_id = target_order.product_id.clone().unwrap();
+    let p = crate::schema::product::table.find(product_id)
+      .first::<ProductDTO>(&mut pool.get().expect(""))?;
+    if p.surplus > 0 {
+      let product_id = target_order.product_id.clone().unwrap();
+      diesel::insert_into(crate::schema::order::dsl::order)
+        .values(&target_order)
+        .execute(&mut pool.get().expect("")).expect("insert into order error");
 
-    let _ = super::order::insert_order_list(
-      &mut pool.get().expect(""),
-      vec![target_order]
-    );
+      diesel::update(crate::schema::product::table.find(product_id))
+        .set(crate::schema::product::surplus.eq(p.surplus - 1))
+        .execute(&mut pool.get().expect("")).expect("update product error");
+
+      println!("Purchase successful!");
+    } else {
+      println!("Product is out of stock!");
+    }
     Ok(())
   });
   match res {
