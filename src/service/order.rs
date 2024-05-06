@@ -262,3 +262,71 @@ pub async fn consumer_product<'a>(
     }
   }
 }
+
+
+// 先判断是否 是系统售出，若是则不能删除
+// 然后判断是否已经被生成台账记录了，没有则允许删除
+pub async fn delete_item_order<'a>(
+  pool: &web::Data<DbPool>,
+  target_order_id: i32,
+) -> Result<(), &'a str> {
+
+  // 1. 查询到数据
+  let mut conn = pool.get().expect("");
+  let res = web::block(move || {
+    dao::order::query_item_order_by_order_id(&mut conn, target_order_id)
+  }).await;
+  // 判断条件
+  {
+    if let Err(e) = res {
+      eprintln!("{:?}", e);
+      return Err("查询数据失败");
+    }
+    if let Ok(Err(e)) = res {
+      eprintln!("{:?}", e);
+      return Err("not found");
+    }
+  }
+  
+  let item = res.unwrap().unwrap();
+  if item.salesman.id == 1 {
+    return Err("系统售出，不能删除");
+  }
+
+  //2. 判断是否已经生成了台账记录，若生成了则不能操作了
+  let mut conn = pool.get().expect("");
+  let res = web::block(move || {
+    dao::ledger::query_item_ledger(&mut conn, item.product.id.clone())
+  }).await;
+
+  {
+    if let Err(e) = res {
+      eprintln!("{:?}", e);
+      return Err("查询台账记录失败");
+    }
+    if let Ok(Ok(_)) = res {
+      return Err("该销售记录对应的旅行团已生产台账记录，无法修改该销售记录");
+    }
+  }
+
+  let mut conn = pool.get().expect("");
+  let res = web::block(move || {
+    dao::order::delete_item_order(&mut conn, target_order_id)
+  }).await;
+  match res {
+    Ok(res) => match res {
+      Err(e) => {
+        eprintln!("{:?}", e);
+        Err("删除失败")
+      },
+      Ok(res) => match res {
+        true => Ok(()),
+        false => Err("删除失败"),
+      }
+    }
+    Err(e) => {
+      eprintln!("{:?}", e);
+      Err("删除失败")
+    }
+  }
+}

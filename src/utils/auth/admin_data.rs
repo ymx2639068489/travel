@@ -31,7 +31,6 @@ fn verity(rule_value: i32, rule: &str) -> bool {
     "set_rule" => RuleValue::SetRule,
     _ => panic!("Invalid rule"),
   } as i32;
-  // println!("{} - {}", rule_value, y);
   (rule_value & y) == y
 }
 
@@ -48,7 +47,6 @@ impl JwtAdminData {
     table: &str,
     rule_value: &str
   ) -> bool {
-    // println!("table is '{}', rule_value is '{}'", table, rule_value);
 
     let admin_info = service::admin::get_admin_by_id(
       pool,
@@ -56,7 +54,6 @@ impl JwtAdminData {
     ).await;
     match admin_info {
       Ok(admin) => {
-        // println!("{:?}", admin.role);
         match table {
           "admin" => verity(admin.role.admin_value, rule_value),
           "operator" => verity(admin.role.operator_value, rule_value),

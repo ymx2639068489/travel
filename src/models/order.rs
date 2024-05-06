@@ -179,10 +179,13 @@ pub struct OrderQueryPager {
   pub page_size: i64,
   // 用户名
   pub custom_name: Option<String>,
+  pub custom_id: Option<i32>,
   // 销售员
   pub salesman_name: Option<String>,
+  pub salesman_id: Option<i32>,
   // 产品
   pub product_name: Option<String>,
+  pub product_id: Option<String>,
   // 公司名
   pub company_name: Option<String>,
   // 订单号

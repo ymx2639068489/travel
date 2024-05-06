@@ -1,8 +1,8 @@
 use actix_web::{
-  get, post, web, Responder, Result as Res
+  delete, get, post, web, Responder, Result as Res
 };
 use crate::{
-  models::order::*,
+  models::{order::*, QueryId},
   service,
   DbPool,
   JwtAdminData,
@@ -77,9 +77,28 @@ async fn upload_order(
   })
 }
 
+#[delete("/delete")]
+#[verify_permissions(sales_records, delete)]
+async fn delete_item(
+  jwt: JwtAdminData,
+  pool: web::Data<DbPool>,
+  target_order_id: web::Query<QueryId>
+) -> Res<impl Responder> {
+  let res = service::order::delete_item_order(
+    &pool,
+    target_order_id.id,
+  ).await;
+  Ok(match res {
+    Ok(_) => Response::ok("", "删除成功"),
+    Err(e) => Response::client_error(e),
+  })
+}
+
 pub fn init_routes(cfg: &mut web::ServiceConfig) {
   cfg
     .service(get_list)
     .service(get_total_people_number)
+    .service(delete_item)
+    .service(upload_order)
     ;
 }

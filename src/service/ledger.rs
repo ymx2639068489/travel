@@ -46,6 +46,11 @@ pub async fn add_one_ledger<'a>(
     dao::product::query_product_by_id(&mut conn, product_id)
   }).await.unwrap().unwrap();
 
+  // 旅行团尚未结束
+  if target_product.end_time > chrono::Local::now().naive_local() {
+    return Err("当前产品未结束、不能生成台账记录");
+  }
+
   // 1. 通过id查询产品的销售记录
   let mut conn = pool.get().unwrap();
   let product_id = target_ledger.id.clone();

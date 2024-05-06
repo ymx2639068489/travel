@@ -91,3 +91,12 @@ pub fn update_ledger(
     .execute(conn)
   )
 }
+
+pub fn query_item_ledger(
+  conn: &mut Conn,
+  target_product_id: String,
+) -> QueryResult<LedgerDTO> {
+  crate::schema::ledger::table
+    .filter(crate::schema::ledger::dsl::id.eq(target_product_id))
+    .first::<LedgerDTO>(conn)
+}

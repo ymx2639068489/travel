@@ -35,8 +35,20 @@ pub fn query_order_list(
     if let Some(target_custom_name) = pager.custom_name {
       sql = sql.filter(custom::dsl::name.like(format!("%{}%", target_custom_name)));
     }
+    if let Some(target_custom_id) = pager.custom_id {
+      sql = sql.filter(custom::dsl::id.eq(target_custom_id))
+    }
     if let Some(target_salesman_name) = pager.salesman_name {
       sql = sql.filter(salesman::dsl::username.like(format!("%{}%", target_salesman_name)));
+    }
+    if let Some(target_salesman_id) = pager.salesman_id {
+      sql = sql.filter(custom::dsl::id.eq(target_salesman_id))
+    }
+    if let Some(target_product_name) = pager.product_name {
+      sql = sql.filter(base_product::dsl::name.like(format!("%{}%", target_product_name)));
+    }
+    if let Some(target_product_id) = pager.product_id {
+      sql = sql.filter(base_product::dsl::name.like(format!("%{}%", target_product_id)));
     }
     if let Some(target_company) = pager.company_name {
       sql = sql.filter(company.eq(target_company));
@@ -230,13 +242,38 @@ pub fn insert_order_list(
    .execute(conn))
 }
 
-// /**
-//  * 事务消费产品，生成订单记录
-//  */
-// pub fn insert_order(
-//   conn: &mut Conn,
-//   target_order: AddOrderDTO,
-// ) -> QueryResult<bool> {
-//   // diesel::
-//   // conn.transaction(f)
-// }
+pub fn delete_item_order(
+  conn: &mut Conn,
+  target_order_id: i32,
+) -> QueryResult<bool> {
+  diesel_to_res(diesel::delete(order.find(target_order_id))
+   .execute(conn))
+}
+
+pub fn query_item_order_by_order_id(
+  conn: &mut Conn,
+  target_order_id: i32,
+) -> QueryResult<JoinOrderDTO> {
+  let res = crate::schema::order::table
+      .into_boxed()
+      .inner_join(product::table.on(order::product_id.eq(product::id.nullable())))
+      .inner_join(base_product::table.on(product::base_product_id.eq(base_product::id.nullable())))
+      .inner_join(salesman::table)
+      .inner_join(custom::table)
+      .select((
+        OrderDTO::as_select(),
+        ProductDTO::as_select(),
+        BaseProductDTO::as_select(),
+        SalesmanDTO::as_select(),
+        UserDTO::as_select(),
+      ))
+      .filter(order::dsl::id.eq(target_order_id))
+      .first::<(OrderDTO, ProductDTO, BaseProductDTO, SalesmanDTO, UserDTO)>(conn)?
+      ;
+  
+  Ok(res.0.to_join_order_dto(
+    res.1.clone().to_product_join_dto(res.2.clone()),
+    res.3.clone(),
+    res.4.clone(),
+  ))
+}
