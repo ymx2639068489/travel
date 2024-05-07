@@ -197,17 +197,17 @@ pub struct OrderQueryPager {
   // 支付方式
   pub pay_method: Option<String>,
   // 录入时间范围
-  pub create_at_l: Option<chrono::NaiveDateTime>,
-  pub create_at_r: Option<chrono::NaiveDateTime>,
+  pub create_at_l: Option<String>,
+  pub create_at_r: Option<String>,
   // 订单时间范围（用户购买时间）
-  pub order_time_l: Option<chrono::NaiveDateTime>,
-  pub order_time_r: Option<chrono::NaiveDateTime>,
+  pub order_time_l: Option<String>,
+  pub order_time_r: Option<String>,
   // 开始时间范围 （产品开始和结束时间）
-  pub start_time_l: Option<chrono::NaiveDateTime>,
-  pub start_time_r: Option<chrono::NaiveDateTime>,
+  pub start_time_l: Option<String>,
+  pub start_time_r: Option<String>,
   // 结束时间范围
-  pub end_time_l: Option<chrono::NaiveDateTime>,
-  pub end_time_r: Option<chrono::NaiveDateTime>,
+  pub end_time_l: Option<String>,
+  pub end_time_r: Option<String>,
 }
 
 /**

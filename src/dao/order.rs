@@ -2,11 +2,11 @@ use crate::{
   models::{
     base_product::BaseProductDTO, order::*, product::ProductDTO, salesman::SalesmanDTO, user::UserDTO
   },
-  schema::{custom, product, salesman, order, base_product},
-  utils::sql_response::diesel_to_res,
+  schema::{base_product, custom, order, product, salesman},
+  utils::{sql_response::diesel_to_res, str_to_naive_date_time},
   ResponseList
 };
-use diesel::prelude::*;
+use diesel::{debug_query, prelude::*};
 type Conn = diesel::MysqlConnection;
 use crate::schema::order::dsl::*;
 
@@ -38,19 +38,19 @@ pub fn query_order_list(
       sql = sql.filter(custom::dsl::name.like(format!("%{}%", target_custom_name)));
     }
     if let Some(target_custom_id) = pager.custom_id {
-      sql = sql.filter(custom::dsl::id.eq(target_custom_id))
+      sql = sql.filter(order::salesman_id.eq(target_custom_id))
     }
     if let Some(target_salesman_name) = pager.salesman_name {
       sql = sql.filter(salesman::dsl::username.like(format!("%{}%", target_salesman_name)));
     }
     if let Some(target_salesman_id) = pager.salesman_id {
-      sql = sql.filter(custom::dsl::id.eq(target_salesman_id))
+      sql = sql.filter(order::salesman_id.eq(target_salesman_id))
     }
     if let Some(target_product_name) = pager.product_name {
       sql = sql.filter(base_product::dsl::name.like(format!("%{}%", target_product_name)));
     }
     if let Some(target_product_id) = pager.product_id {
-      sql = sql.filter(base_product::dsl::name.like(format!("%{}%", target_product_id)));
+      sql = sql.filter(order::dsl::product_id.eq(target_product_id));
     }
     if let Some(target_company) = pager.company_name {
       sql = sql.filter(company.eq(target_company));
@@ -65,28 +65,28 @@ pub fn query_order_list(
       sql = sql.filter(pay_method.eq(target_pay_method));
     }
     if let Some(target_create_at_l) = pager.create_at_l {
-      sql = sql.filter(create_at.ge(target_create_at_l));
+      sql = sql.filter(create_at.ge(str_to_naive_date_time(&target_create_at_l)));
     }
     if let Some(target_create_at_r) = pager.create_at_r {
-      sql = sql.filter(create_at.le(target_create_at_r));
+      sql = sql.filter(create_at.le(str_to_naive_date_time(&target_create_at_r)));
     }
     if let Some(target_order_time_l) = pager.order_time_l {
-      sql = sql.filter(order_time.ge(target_order_time_l));
+      sql = sql.filter(order_time.ge(str_to_naive_date_time(&target_order_time_l)));
     }
     if let Some(target_order_time_r) = pager.order_time_r {
-      sql = sql.filter(order_time.le(target_order_time_r));
+      sql = sql.filter(order_time.le(str_to_naive_date_time(&target_order_time_r)));
     }
     if let Some(target_start_time_l) = pager.start_time_l {
-      sql = sql.filter(product::dsl::start_time.ge(target_start_time_l));
+      sql = sql.filter(product::dsl::start_time.ge(str_to_naive_date_time(&target_start_time_l)));
     }
     if let Some(target_start_time_r) = pager.start_time_r {
-      sql = sql.filter(product::dsl::start_time.le(target_start_time_r));
+      sql = sql.filter(product::dsl::start_time.le(str_to_naive_date_time(&target_start_time_r)));
     }
-    if let Some(target_end_time_l) = pager.start_time_l {
-      sql = sql.filter(product::dsl::end_time.ge(target_end_time_l));
+    if let Some(target_end_time_l) = pager.end_time_l {
+      sql = sql.filter(product::dsl::end_time.ge(str_to_naive_date_time(&target_end_time_l)));
     }
-    if let Some(target_end_time_r) = pager.start_time_r {
-      sql = sql.filter(product::dsl::end_time.le(target_end_time_r));
+    if let Some(target_end_time_r) = pager.end_time_r {
+      sql = sql.filter(product::dsl::end_time.le(str_to_naive_date_time(&target_end_time_r)));
     }
     sql
   };
@@ -96,12 +96,12 @@ pub fn query_order_list(
     .offset((pager.page - 1) * pager.page_size)
     .load::<(OrderDTO, ProductDTO, BaseProductDTO, SalesmanDTO, UserDTO)>(conn)?;
 
-  // let query = get_sql(pager.clone());
+  let query = get_sql(pager.clone());
     // .limit(pager.page_size)
     // .offset((pager.page - 1) * pager.page_size);
 
-  // let sql = debug_query::<diesel::mysql::Mysql, _>(&query);
-  // println!("{:?}", sql); // 打印最后执行的 SQL 语句和参数
+  let sql = debug_query::<diesel::mysql::Mysql, _>(&query);
+  println!("{:?}", sql); // 打印最后执行的 SQL 语句和参数
   let count = get_sql(pager.clone())
     .count()
     .get_result(conn)
@@ -170,19 +170,36 @@ pub fn query_order_sum_people(
   conn: &mut Conn,
   pager: OrderQueryPager,
 ) -> QueryResult<i64> {
-  
+
+  // .select(diesel::dsl::sum(people_number));
   let get_sql = move || {
     let mut sql = crate::schema::order::table
       .into_boxed()
-      .inner_join(product::table)
+      .inner_join(product::table.on(order::product_id.eq(product::id.nullable())))
+      .inner_join(base_product::table.on(product::base_product_id.eq(base_product::id.nullable())))
       .inner_join(salesman::table)
       .inner_join(custom::table)
-      .select(diesel::dsl::sum(people_number));
+      .select(diesel::dsl::sum(people_number))
+      .order(order::create_at.desc())
+      ;
+
     if let Some(target_custom_name) = pager.custom_name {
       sql = sql.filter(custom::dsl::name.like(format!("%{}%", target_custom_name)));
     }
+    if let Some(target_custom_id) = pager.custom_id {
+      sql = sql.filter(custom::dsl::id.eq(target_custom_id))
+    }
     if let Some(target_salesman_name) = pager.salesman_name {
       sql = sql.filter(salesman::dsl::username.like(format!("%{}%", target_salesman_name)));
+    }
+    if let Some(target_salesman_id) = pager.salesman_id {
+      sql = sql.filter(salesman::dsl::id.eq(target_salesman_id))
+    }
+    if let Some(target_product_name) = pager.product_name {
+      sql = sql.filter(base_product::dsl::name.like(format!("%{}%", target_product_name)));
+    }
+    if let Some(target_product_id) = pager.product_id {
+      sql = sql.filter(order::dsl::product_id.eq(target_product_id));
     }
     if let Some(target_company) = pager.company_name {
       sql = sql.filter(company.eq(target_company));
@@ -197,28 +214,28 @@ pub fn query_order_sum_people(
       sql = sql.filter(pay_method.eq(target_pay_method));
     }
     if let Some(target_create_at_l) = pager.create_at_l {
-      sql = sql.filter(create_at.ge(target_create_at_l));
+      sql = sql.filter(create_at.ge(str_to_naive_date_time(&target_create_at_l)));
     }
     if let Some(target_create_at_r) = pager.create_at_r {
-      sql = sql.filter(create_at.le(target_create_at_r));
+      sql = sql.filter(create_at.le(str_to_naive_date_time(&target_create_at_r)));
     }
     if let Some(target_order_time_l) = pager.order_time_l {
-      sql = sql.filter(order_time.ge(target_order_time_l));
+      sql = sql.filter(order_time.ge(str_to_naive_date_time(&target_order_time_l)));
     }
     if let Some(target_order_time_r) = pager.order_time_r {
-      sql = sql.filter(order_time.le(target_order_time_r));
+      sql = sql.filter(order_time.le(str_to_naive_date_time(&target_order_time_r)));
     }
     if let Some(target_start_time_l) = pager.start_time_l {
-      sql = sql.filter(product::dsl::start_time.ge(target_start_time_l));
+      sql = sql.filter(product::dsl::start_time.ge(str_to_naive_date_time(&target_start_time_l)));
     }
     if let Some(target_start_time_r) = pager.start_time_r {
-      sql = sql.filter(product::dsl::start_time.le(target_start_time_r));
+      sql = sql.filter(product::dsl::start_time.le(str_to_naive_date_time(&target_start_time_r)));
     }
-    if let Some(target_end_time_l) = pager.start_time_l {
-      sql = sql.filter(product::dsl::end_time.ge(target_end_time_l));
+    if let Some(target_end_time_l) = pager.end_time_l {
+      sql = sql.filter(product::dsl::end_time.ge(str_to_naive_date_time(&target_end_time_l)));
     }
-    if let Some(target_end_time_r) = pager.start_time_r {
-      sql = sql.filter(product::dsl::end_time.le(target_end_time_r));
+    if let Some(target_end_time_r) = pager.end_time_r {
+      sql = sql.filter(product::dsl::end_time.le(str_to_naive_date_time(&target_end_time_r)));
     }
     sql
   };
