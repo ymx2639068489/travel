@@ -103,6 +103,6 @@ pub fn query_custom_id_and_phone_by_phone(
 ) -> QueryResult<Vec<(i32, Option<String>, Option<String>)>> {
   custom
     .select((id, phone, id_number))
-    .filter(phone.like(format!("%{}%", phone_list.join("|"))))
+    .filter(phone.eq_any(phone_list).or(phone.is_null()))
     .load::<(i32, Option<String>, Option<String>)>(conn)
 }

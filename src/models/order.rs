@@ -2,6 +2,8 @@ use bigdecimal::BigDecimal;
 use diesel::{deserialize::Queryable, prelude::Insertable, Selectable};
 use serde::{Deserialize, Serialize};
 
+use crate::utils::str_to_naive_date_time;
+
 use super::{
   product::ProductJoinDTO,
   salesman::SalesmanDTO,
@@ -240,7 +242,7 @@ pub struct ReqAddOrderDTO {
   // 购买份数
   pub people_number: i32,
   // 下单时间
-  pub order_time: chrono::NaiveDateTime,
+  pub order_time: String,
   // 销售员姓名
   pub salesman_name: String,
   // 销售员电话
@@ -270,7 +272,7 @@ impl ReqAddOrderDTO {
       salesman_id: Some(salesman_id),
       product_id: Some(product_id),
       create_at: crate::utils::now_to_naive_date_time(),
-      order_time: self.order_time,
+      order_time: str_to_naive_date_time(&self.order_time),
       company,
       order_id: self.order_id.clone(),
       pay_method: self.pay_method.clone(),

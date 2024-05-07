@@ -101,6 +101,6 @@ pub fn query_salesman_list_by_phone(
   salesman
     .inner_join(crate::schema::company::table)
     .select((id, username, phone, crate::schema::company::columns::name))
-    .filter(phone.like(format!("%{}%", phone_list.join("|"))))
+    .filter(phone.eq_any(phone_list))
     .load::<(i32, String, String, Option<String>)>(conn)
 }

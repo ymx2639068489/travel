@@ -72,7 +72,7 @@ async fn upload_order(
     order_list.into_inner(),
   ).await;
   Ok(match res {
-    Ok(res) => Response::ok(res, ""),
+    Ok(res) => Response::ok_list(res),
     Err(e) => Response::client_error(e),
   })
 }

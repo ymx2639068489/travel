@@ -142,16 +142,17 @@ pub fn delete_product(
  * id_list: String[]
  * 传入一个id数组，查询对应的产品
  * 用于批量导入时的查询
+ * 返回id name surplus(id，产品名，剩余量)
  */
 pub fn query_by_id_list(
   conn: &mut Conn,
   id_list: Vec<String>
-) -> QueryResult<Vec<(String, Option<String>)>> {
+) -> QueryResult<Vec<(String, Option<String>, i32)>> {
   product
     .inner_join(crate::schema::base_product::table)
-    .select((id, crate::schema::base_product::columns::name))
+    .select((id, crate::schema::base_product::columns::name, surplus))
     .filter(id.eq_any(id_list))
-    .load::<(String, Option<String>)>(conn)
+    .load::<(String, Option<String>, i32)>(conn)
 }
 
 /**

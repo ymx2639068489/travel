@@ -30,7 +30,9 @@ pub fn query_order_list(
         BaseProductDTO::as_select(),
         SalesmanDTO::as_select(),
         UserDTO::as_select(),
-      ));
+      ))
+      .order(order::create_at.desc())
+      ;
 
     if let Some(target_custom_name) = pager.custom_name {
       sql = sql.filter(custom::dsl::name.like(format!("%{}%", target_custom_name)));
@@ -94,6 +96,12 @@ pub fn query_order_list(
     .offset((pager.page - 1) * pager.page_size)
     .load::<(OrderDTO, ProductDTO, BaseProductDTO, SalesmanDTO, UserDTO)>(conn)?;
 
+  // let query = get_sql(pager.clone());
+    // .limit(pager.page_size)
+    // .offset((pager.page - 1) * pager.page_size);
+
+  // let sql = debug_query::<diesel::mysql::Mysql, _>(&query);
+  // println!("{:?}", sql); // 打印最后执行的 SQL 语句和参数
   let count = get_sql(pager.clone())
     .count()
     .get_result(conn)
@@ -237,6 +245,16 @@ pub fn insert_order_list(
   conn: &mut Conn,
   target_order: Vec<AddOrderDTO>,
 ) -> QueryResult<bool>{
+
+  for item in target_order.iter() {
+    println!("order: s is {:?}, c is {:?}, p is {:?} time is {:?}",
+      item.salesman_id,
+      item.custom_id,
+      item.product_id,
+      item.order_time,
+    );
+  }
+
   diesel_to_res(diesel::insert_into(order)
    .values(target_order)
    .execute(conn))
