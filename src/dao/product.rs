@@ -3,7 +3,7 @@ type Conn = diesel::MysqlConnection;
 use crate::{
   models::{base_product::BaseProductDTO, order::AddOrderDTO, product::*},
   schema::product::dsl::*,
-  utils::sql_response::diesel_to_res,
+  utils::{sql_response::diesel_to_res, str_to_naive_date_time},
   ResponseList,
 };
 pub fn front_query_product_list(
@@ -54,16 +54,16 @@ pub fn query_product_list(
       sql = sql.filter(base_product_id.eq(target_base_product_id));
     }
     if let Some(target_start_time_l) = pager.start_time_l {
-      sql = sql.filter(start_time.ge(target_start_time_l))
+      sql = sql.filter(start_time.ge(str_to_naive_date_time(&target_start_time_l)));
     }
     if let Some(target_start_time_r) = pager.start_time_r {
-      sql = sql.filter(start_time.le(target_start_time_r))
+      sql = sql.filter(start_time.le(str_to_naive_date_time(&target_start_time_r)));
     }
     if let Some(target_end_time_l) = pager.end_time_l {
-      sql =  sql.filter(end_time.ge(target_end_time_l));
+      sql =  sql.filter(end_time.ge(str_to_naive_date_time(&target_end_time_l)));
     }
     if let Some(target_end_time_r) = pager.end_time_r {
-      sql = sql.filter(end_time.le(target_end_time_r))
+      sql = sql.filter(end_time.le(str_to_naive_date_time(&target_end_time_r)));
     }
     if let Some(target_people_number) = pager.people_number {
       sql = sql.filter(people_number.eq(target_people_number));

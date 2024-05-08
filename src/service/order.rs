@@ -222,11 +222,16 @@ pub async fn insert_order<'a>(
 
     // check
     // 用户手机号与身份证对不上 or 销售员手机号与销售员姓名对不上 or 产品id与产品名称对不上
-    if target_custom.2 != order.custom_id_number
-      || target_salesman.1 != order.salesman_name
-      || target_product.1 != order.product_name
-    {
-      err_list.push((order.clone(), "数据对不上"));
+    if target_custom.2 != order.custom_id_number {
+      err_list.push((order.clone(), "客户数据对不上"));
+      continue;
+    }
+    if target_salesman.1 != order.salesman_name {
+      err_list.push((order.clone(), "销售员数据对不上"));
+      continue;
+    }
+    if target_product.1 != order.product_name {
+      err_list.push((order.clone(), "产品数据对不上"));
       continue;
     }
     // 数据对的上，可以进行插入

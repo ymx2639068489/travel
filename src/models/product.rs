@@ -188,11 +188,11 @@ pub struct ProductQueryDTO {
   pub page_size: i64,
   pub base_product_id: Option<String>,
   // 开始时间范围
-  pub start_time_l: Option<chrono::NaiveDateTime>,
-  pub start_time_r: Option<chrono::NaiveDateTime>,
+  pub start_time_l: Option<String>,
+  pub start_time_r: Option<String>,
   // 结束时间范围
-  pub end_time_l: Option<chrono::NaiveDateTime>,
-  pub end_time_r: Option<chrono::NaiveDateTime>,
+  pub end_time_l: Option<String>,
+  pub end_time_r: Option<String>,
   // 人数
   pub people_number: Option<i32>,
   // 团期
