@@ -52,7 +52,8 @@ pub fn query_product_list(
     let mut sql = crate::schema::product::table
       .into_boxed()
       .inner_join(crate::schema::base_product::table)
-      .select((ProductDTO::as_select(), BaseProductDTO::as_select()));
+      .select((ProductDTO::as_select(), BaseProductDTO::as_select()))
+      .order(crate::schema::product::start_time.desc());
     if let Some(target_base_product_id) = pager.base_product_id {
       sql = sql.filter(base_product_id.eq(target_base_product_id));
     }
