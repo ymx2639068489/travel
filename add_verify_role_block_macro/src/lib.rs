@@ -6,11 +6,12 @@ use syn::{parse_macro_input, ItemFn};
 #[proc_macro_attribute]
 pub fn verify_permissions(attr: TokenStream, input: TokenStream) -> TokenStream {
   let arg = attr.to_string();
+  // 得到该接口涉及到的操作
   let (_, mut rule_value) = arg.split_at(arg.find(",").unwrap() + 1);
   rule_value = rule_value.trim();
+  // 得到该接口涉及到的表
   let (table, _) = arg.split_at(arg.find(",").unwrap());
-  let res = build_code(input, table, rule_value);
-  res
+  build_code(input, table, rule_value)
 }
 
 fn build_code(input: TokenStream, table: &str, rule_value: &str) -> TokenStream {

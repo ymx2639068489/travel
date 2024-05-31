@@ -14,10 +14,13 @@ pub fn front_query_product_list(
     let mut sql = crate::schema::product::table
       .into_boxed()
       .inner_join(crate::schema::base_product::table)
-      .select((ProductDTO::as_select(), BaseProductDTO::as_select()));
+      .select((ProductDTO::as_select(), BaseProductDTO::as_select()))
+      .filter(start_time.ge(str_to_naive_date_time(&pager.start_time_l)))
+      ;
     if let Some(target_product_type) = pager.product_type {
       sql = sql.filter(product_type.like(format!("%{}%",target_product_type)));
     }
+    
     sql
   };
   let list: Vec<ProductJoinDTO> = get_sql(pager.clone())

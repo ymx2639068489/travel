@@ -208,6 +208,7 @@ pub struct FrontProductQueryDTO {
   pub page_size: i64,
   // 产品类型
   pub product_type: Option<String>,
+  pub start_time_l: String,
 }
 
 #[derive(Debug, Clone, Deserialize)]

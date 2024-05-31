@@ -8,24 +8,24 @@ pub async fn front_get_product_list<'a>(
   pool: &web::Data<crate::DbPool>,
   pager: FrontProductQueryDTO,
 ) -> Result<ResponseList<ProductJoinDTO>, &'a str> {
-let mut conn = pool.get().unwrap();
-let res = web::block(move ||
-  dao::product::front_query_product_list(&mut conn, pager)
-).await;
+  let mut conn = pool.get().unwrap();
+  let res = web::block(move ||
+    dao::product::front_query_product_list(&mut conn, pager)
+  ).await;
 
-match res {
-  Err(e) => {
-    eprint!("{}", e);
-    Err("数据库查询错误")
-  },
-  Ok(res) => match res {
-    Ok(res) => Ok(res),
+  match res {
     Err(e) => {
       eprint!("{}", e);
-      Err("查询错误")
+      Err("数据库查询错误")
+    },
+    Ok(res) => match res {
+      Ok(res) => Ok(res),
+      Err(e) => {
+        eprint!("{}", e);
+        Err("查询错误")
+      }
     }
   }
-}
 }
 /**
  * 后台获取产品列表

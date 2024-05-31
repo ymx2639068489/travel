@@ -31,14 +31,15 @@ pub fn create_jwt(admin_id: &String) -> String {
     )
     .expect("valid timestamp")
     .timestamp();
+  // 使用HS512算法
   let header = Header::new(Algorithm::HS512);
   let claims = Claims::new(admin_id, expiration as usize);
-
+  // 加密
   jsonwebtoken::encode(&header, &claims, &EncodingKey::from_secret(JWT_SECRET))
     .map(|s| format!("Bearer {}", s))
     .unwrap()
 }
-
+// 解密
 pub fn validate_token(token: &str) -> Result<TokenData<Claims>, JwtError> {
   let validation = Validation::new(Algorithm::HS512);
   let key = DecodingKey::from_secret(JWT_SECRET);
